@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2026 PGA Tour Pool — Hud's Golf Pool</title>
+  <meta name="description" content="Hud's Golf Pool — 2026 PGA Tour Season Leaderboard, Picks, and Stats" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: linear-gradient(180deg, #f8f7f4 0%, #eae8e1 100%); min-height: 100vh; }
+    @keyframes modalIn { from { opacity:0; transform: translateY(12px) scale(0.97); } to { opacity:1; transform: none; } }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+    .fade-up { animation: fadeUp 0.4s ease-out both; }
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.1s; }
+    .golf-stripe:nth-child(even) { background: rgba(0,0,0,0.02); }
+    .pos-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 28px; height: 28px; border-radius: 999px; font-weight: 700; font-size: 13px;
+    }
+    .pos-1 { background: linear-gradient(135deg, #ffd700 0%, #ffec80 100%); color: #7c6200; box-shadow: 0 1px 4px rgba(255,215,0,0.4); }
+    .pos-2 { background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%); color: #555; box-shadow: 0 1px 4px rgba(192,192,192,0.4); }
+    .pos-3 { background: linear-gradient(135deg, #cd7f32 0%, #e8a862 100%); color: #5c3a10; box-shadow: 0 1px 4px rgba(205,127,50,0.4); }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .hover-row:hover { background: rgba(0,0,0,0.03); }
+    .serif { font-family: 'Playfair Display', Georgia, serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // ─── DATA ───
+    const MEMBERS = [
+      "Adam Dory","Jim","Sandy","Frank","Sean","Mark","Kyle","Phil",
+      "Dom","Kole","Luke","Jeff","John","Hudson","Kev Liska","Cam",
+      "Briggs","Nick","Bo","Kev Mahon","Denis","Kenyon"
+    ];
+
+    const TOURNAMENTS = [
+      { id:"sony", name:"Sony Open", status:"completed" },
+      { id:"amex", name:"The Amex", status:"completed" },
+      { id:"farmers", name:"Farmers Insurance Open", status:"completed" },
+      { id:"wm", name:"WM Phoenix Open", status:"completed" },
+      { id:"pebble", name:"AT&T Pebble Beach Pro-Am", status:"completed" },
+      { id:"genesis", name:"Genesis Invitational", status:"completed" },
+      { id:"cognizant", name:"Cognizant Classic", status:"completed" },
+      { id:"arnold", name:"Arnold Palmer Invitational", status:"upcoming" },
+      { id:"puerto", name:"Puerto Rico Open", status:"upcoming" },
+      { id:"players", name:"THE PLAYERS Championship", status:"upcoming" },
+      { id:"valspar", name:"Valspar Championship", status:"upcoming" },
+      { id:"houston", name:"Texas Children's Houston Open", status:"upcoming" },
+      { id:"valero", name:"Valero Texas Open", status:"upcoming" },
+      { id:"masters", name:"The Masters", status:"upcoming", isMajor:true },
+      { id:"heritage", name:"RBC Heritage", status:"upcoming" },
+      { id:"zurich", name:"Zurich Classic", status:"upcoming" },
+      { id:"byron", name:"CJ Cup Byron Nelson", status:"upcoming" },
+      { id:"schwab", name:"Charles Schwab Challenge", status:"upcoming" },
+      { id:"memorial", name:"the Memorial Tournament", status:"upcoming" },
+      { id:"canadian", name:"RBC Canadian Open", status:"upcoming" },
+      { id:"usopen", name:"U.S. Open", status:"upcoming", isMajor:true },
+      { id:"travelers", name:"Travelers Championship", status:"upcoming" },
+      { id:"rocket", name:"Rocket Mortgage Classic", status:"upcoming" },
+      { id:"deere", name:"John Deere Classic", status:"upcoming" },
+      { id:"scottish", name:"Genesis Scottish Open", status:"upcoming" },
+      { id:"open", name:"The Open Championship", status:"upcoming", isMajor:true },
+      { id:"3m", name:"3M Open", status:"upcoming" },
+      { id:"wyndham", name:"Wyndham Championship", status:"upcoming" },
+      { id:"stjude", name:"FedEx St. Jude Championship", status:"upcoming" },
+      { id:"bmw", name:"BMW Championship", status:"upcoming" },
+      { id:"tour", name:"TOUR Championship", status:"upcoming" },
+      { id:"pga", name:"PGA Championship", status:"upcoming", isMajor:true },
+    ];
+
+    const ALL_PICKS = {
+      sony: {
+        "Hudson":{golfer:"Nick Taylor",score:13},"Frank":{golfer:"Ben Griffin",score:19},
+        "Jeff":{golfer:"Ben Griffin",score:19},"Sean":{golfer:"Harry Hall",score:6},
+        "Kev Liska":{golfer:"Robert MacIntyre",score:4},"Briggs":{golfer:"Kieta Nakajima",score:65},
+        "Denis":{golfer:"Chris Kirk",score:65},"Luke":{golfer:"Hideki Matsuyama",score:13},
+        "Mark":{golfer:"Russell Henley",score:19},"John":{golfer:"Corey Conners",score:24},
+        "Sandy":{golfer:"Jake Knapp",score:11},"Phil":{golfer:"Chris Kirk",score:65},
+        "Kev Mahon":{golfer:"Chris Kirk",score:65},"Adam Dory":{golfer:"Ben Griffin",score:19},
+        "Jim":{golfer:"Ben Griffin",score:19},"Bo":{golfer:"Steven Fisk",score:65},
+        "Kenyon":{golfer:"Nick Taylor",score:13},"Cam":{golfer:"Brian Harman",score:61},
+        "Nick":{golfer:"Ben Griffin",score:19},"Kole":{golfer:"Rico Hoey",score:50},
+        "Kyle":{golfer:"Jake Knapp",score:11},"Dom":{golfer:"Ben Griffin",score:19},
+      },
+      amex: {
+        "Hudson":{golfer:"Michael Thorbjornsen",score:65},"Frank":{golfer:"Alex Smalley",score:44},
+        "Jeff":{golfer:"Harry Hall",score:24},"Sean":{golfer:"Si Woo Kim",score:6},
+        "Kev Liska":{golfer:"Harry Hall",score:24},"Briggs":{golfer:"Si Woo Kim",score:6},
+        "Denis":{golfer:"JT Poston",score:38},"Luke":{golfer:"Robert MacIntyre",score:38},
+        "Mark":{golfer:"Patrick Cantlay",score:38},"John":{golfer:"Nick Taylor",score:13},
+        "Sandy":{golfer:"Robert MacIntyre",score:38},"Phil":{golfer:"Ricky Fowler",score:38},
+        "Kev Mahon":{golfer:"Harry Hall",score:24},"Adam Dory":{golfer:"Ryan Gerard",score:2},
+        "Jim":{golfer:"Sam Burns",score:27},"Bo":{golfer:"Patrick Cantlay",score:13},
+        "Kenyon":{golfer:"Sepp Straka",score:65},"Cam":{golfer:"Sam Burns",score:27},
+        "Nick":{golfer:"JT Poston",score:38},"Kole":{golfer:"Patrick Cantlay",score:13},
+        "Kyle":{golfer:"Wyndham Clark",score:13},"Dom":{golfer:"Sam Burns",score:27},
+      },
+      farmers: {
+        "Hudson":{golfer:"Maverick McNealy",score:10},"Frank":{golfer:"Jason Day",score:38},
+        "Jeff":{golfer:"Ryan Gerard",score:11},"Sean":{golfer:"Maverick McNealy",score:10},
+        "Kev Liska":{golfer:"JJ Spaun",score:65},"Briggs":{golfer:"JJ Spaun",score:65},
+        "Denis":{golfer:"Cameron Young",score:22},"Luke":{golfer:"JJ Spaun",score:65},
+        "Mark":{golfer:"JT Poston",score:65},"John":{golfer:"Taylor Pendrith",score:65},
+        "Sandy":{golfer:"Wyndham Clark",score:65},"Phil":{golfer:"Jason Day",score:38},
+        "Kev Mahon":{golfer:"Chris Gotterup",score:18},"Adam Dory":{golfer:"Chris Gotterup",score:18},
+        "Jim":{golfer:"Si Woo Kim",score:2},"Bo":{golfer:"Jason Day",score:38},
+        "Kenyon":{golfer:"Keegan Bradley",score:43},"Cam":{golfer:"Chris Gotterup",score:18},
+        "Nick":{golfer:"Jake Knapp",score:5},"Kole":{golfer:"Jason Day",score:38},
+        "Kyle":{golfer:"Maverick McNealy",score:10},"Dom":{golfer:"Max Homa",score:65},
+      },
+      wm: {
+        "Hudson":{golfer:"Sam Burns",score:65},"Frank":{golfer:"Maverick McNealy",score:13},
+        "Jeff":{golfer:"Sam Burns",score:65},"Sean":{golfer:"Sahith Theegala",score:18},
+        "Kev Liska":{golfer:"Ben Griffin",score:28},"Briggs":{golfer:"Sahith Theegala",score:18},
+        "Denis":{golfer:"Sam Burns",score:65},"Luke":{golfer:"Ben Griffin",score:28},
+        "Mark":{golfer:"Hideki Matsuyama",score:2},"John":{golfer:"Si Woo Kim",score:3},
+        "Sandy":{golfer:"Chris Gotterup",score:1},"Phil":{golfer:"Jake Knapp",score:8},
+        "Kev Mahon":{golfer:"Brooks Koepka",score:65},"Adam Dory":{golfer:"Hideki Matsuyama",score:2},
+        "Jim":{golfer:"JJ Spaun",score:65},"Bo":{golfer:"Max Homa",score:65},
+        "Kenyon":{golfer:"Sam Burns",score:65},"Cam":{golfer:"Hideki Matuyama",score:2},
+        "Nick":{golfer:"Jordan Spieth",score:65},"Kole":{golfer:"Maverick McNealy",score:13},
+        "Kyle":{golfer:"Ben Griffin",score:28},"Dom":{golfer:"Rickie Fowler",score:18},
+      },
+      pebble: {
+        "Hudson":{golfer:"Taylor Pendrith",score:34},"Frank":{golfer:"Hideki Matsuyama",score:8},
+        "Jeff":{golfer:"Justin Rose",score:37},"Sean":{golfer:"Michael Thorbjornsen",score:65},
+        "Kev Liska":{golfer:"Si Woo Kim",score:45},"Briggs":{golfer:"Justin Rose",score:37},
+        "Denis":{golfer:"Maverick McNealy",score:29},"Luke":{golfer:"Justin Rose",score:37},
+        "Mark":{golfer:"Si Woo Kim",score:45},"John":{golfer:"Chris Gotterup",score:37},
+        "Sandy":{golfer:"Matt Fitzpatrick",score:14},"Phil":{golfer:"Shane Lowry",score:8},
+        "Kev Mahon":{golfer:"Maverick McNealy",score:29},"Adam Dory":{golfer:"Justin Rose",score:37},
+        "Jim":{golfer:"Tommy Fleetwood",score:4},"Bo":{golfer:"Viktor Hovland",score:58},
+        "Kenyon":{golfer:"Justin Rose",score:37},"Cam":{golfer:"Maverick McNealy",score:29},
+        "Nick":{golfer:"Viktor Hovland",score:58},"Kole":{golfer:"Si Woo Kim",score:45},
+        "Kyle":{golfer:"Corey Conners",score:65},"Dom":{golfer:"Jake Knapp",score:8},
+      },
+      genesis: {
+        "Hudson":{golfer:"Jake Knapp",score:6},"Frank":{golfer:"Tommy Fleetwood",score:7},
+        "Jeff":{golfer:"Si Woo Kim",score:34},"Sean":{golfer:"Tommy Fleetwood",score:7},
+        "Kev Liska":{golfer:"Matt Fitzpatrick",score:24},"Briggs":{golfer:"Cameron Young",score:7},
+        "Denis":{golfer:"Patrick Cantlay",score:37},"Luke":{golfer:"Tommy Fleetwood",score:7},
+        "Mark":{golfer:"Tommy Fleetwood",score:7},"John":{golfer:"Patrick Cantlay",score:37},
+        "Sandy":{golfer:"Tommy Fleetwood",score:7},"Phil":{golfer:"Matt Fitzpatrick",score:24},
+        "Kev Mahon":{golfer:"Patrick Cantlay",score:37},"Adam Dory":{golfer:"Tommy Fleetwood",score:7},
+        "Jim":{golfer:"Patrick Cantlay",score:37},"Bo":{golfer:"Cameron Young",score:7},
+        "Kenyon":{golfer:"Tommy Fleetwood",score:7},"Cam":{golfer:"Patrick Cantlay",score:37},
+        "Nick":{golfer:"Ludvig Aberg",score:20},"Kole":{golfer:"Hideki Matsuyama",score:28},
+        "Kyle":{golfer:"Max Homa",score:37},"Dom":{golfer:"Sepp Straka",score:50},
+      },
+      cognizant: {
+        "Hudson":{golfer:"Kieth Mitchell",score:6},"Frank":{golfer:"Ryan Gerard",score:23},
+        "Jeff":{golfer:"Shane Lowry",score:2},"Sean":{golfer:"Ryan Gerard",score:23},
+        "Kev Liska":{golfer:"Ryan Gerard",score:23},"Briggs":{golfer:"Ryan Gerard",score:23},
+        "Denis":{golfer:"Nicolai Hojgaard",score:6},"Luke":{golfer:"Shane Lowry",score:2},
+        "Mark":{golfer:"Nicolai Hojgaard",score:6},"John":{golfer:"Shane Lowry",score:6},
+        "Sandy":{golfer:"Shane Lowry",score:2},"Phil":{golfer:"Ryan Gerard",score:23},
+        "Kev Mahon":{golfer:"Ryan Gerard",score:23},"Adam Dory":{golfer:"Nicolai Hojgaard",score:6},
+        "Jim":{golfer:"Rasmus Hojgaard",score:9},"Bo":{golfer:"Shane Lowry",score:2},
+        "Kenyon":{golfer:"Michael Thorbjornsen",score:65},"Cam":{golfer:"Max McGreevy",score:40},
+        "Nick":{golfer:"Ryan Gerard",score:23},"Kole":{golfer:"Shane Lowry",score:2},
+        "Kyle":{golfer:"Shane Lowry",score:2},"Dom":{golfer:"Shane Lowry",score:2},
+      },
+    };
+
+    const MAX_POINTS = 65;
+
+    // Pre-compute leaderboard
+    const LEADERBOARD = MEMBERS.map(name => {
+      let total = 0;
+      const breakdown = [];
+      const usedGolfers = [];
+      TOURNAMENTS.filter(t => t.status === "completed").forEach(t => {
+        const pickData = ALL_PICKS[t.id]?.[name];
+        if (pickData) {
+          total += pickData.score;
+          breakdown.push({ tournament: t.name, tournId: t.id, golfer: pickData.golfer, pts: pickData.score });
+          usedGolfers.push(pickData.golfer);
+        }
+      });
+      return { name, total, breakdown, usedGolfers };
+    }).sort((a, b) => a.total - b.total);
+
+    // ─── Utility ───
+    function cn(...c) { return c.filter(Boolean).join(" "); }
+    function hashCode(s) { let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;} return Math.abs(h); }
+    function memberColor(name) {
+      const c=["#2d6a4f","#9b2226","#005f73","#bb3e03","#3a0ca3","#7b2cbf","#006d77","#9c6644","#264653","#e76f51","#606c38","#bc4749","#0077b6","#d4a373","#6a040f","#023e8a","#7f5539","#4a4e69","#386641","#d62828","#1d3557","#e63946"];
+      return c[hashCode(name)%c.length];
+    }
+    function ordinal(n){const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+
+    // ─── Components ───
+    function Badge({children,variant="default",className=""}){
+      const s={default:"bg-stone-200 text-stone-700",major:"bg-amber-100 text-amber-800 border border-amber-300",active:"bg-emerald-100 text-emerald-800",completed:"bg-stone-100 text-stone-500",penalty:"bg-red-100 text-red-700",pick:"bg-sky-100 text-sky-800",gold:"bg-amber-50 text-amber-700 border border-amber-200"};
+      return React.createElement("span",{className:cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",s[variant],className),style:badgeStyle(variant)},children);
+    }
+    function badgeStyle(v){
+      const m={default:{background:"#e7e5e4",color:"#44403c"},major:{background:"#fef3c7",color:"#92400e",border:"1px solid #fcd34d"},active:{background:"#d1fae5",color:"#065f46"},completed:{background:"#f5f5f4",color:"#78716c"},penalty:{background:"#fee2e2",color:"#b91c1c"},pick:{background:"#e0f2fe",color:"#075985"},gold:{background:"#fffbeb",color:"#b45309",border:"1px solid #fcd34d"}};
+      return{display:"inline-flex",alignItems:"center",padding:"2px 8px",borderRadius:"4px",fontSize:"12px",fontWeight:"500",...(m[v]||m.default)};
+    }
+
+    function Tabs({tabs,active,onChange}){
+      return React.createElement("div",{style:{display:"flex",gap:"4px",background:"#f5f5f4",padding:"4px",borderRadius:"8px"}},
+        tabs.map(t=>React.createElement("button",{key:t.id,onClick:()=>onChange(t.id),style:{flex:1,padding:"8px 12px",borderRadius:"6px",fontSize:"14px",fontWeight:"500",border:"none",cursor:"pointer",transition:"all 0.2s",background:active===t.id?"white":"transparent",color:active===t.id?"#1c1917":"#78716c",boxShadow:active===t.id?"0 1px 2px rgba(0,0,0,0.05)":"none"}},t.label))
+      );
+    }
+
+    function MemberDetailModal({member,open,onClose}){
+      if(!open||!member) return null;
+      return React.createElement("div",{onClick:onClose,style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}},
+        React.createElement("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)"}}),
+        React.createElement("div",{onClick:e=>e.stopPropagation(),style:{position:"relative",background:"white",borderRadius:"12px",boxShadow:"0 25px 50px rgba(0,0,0,0.25)",maxWidth:"420px",width:"100%",maxHeight:"85vh",overflowY:"auto",animation:"modalIn 0.2s ease-out"}},
+          React.createElement("div",{style:{padding:"20px",borderBottom:"1px solid #e7e5e4"}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"12px"}},
+                React.createElement("div",{style:{width:"12px",height:"12px",borderRadius:"50%",background:memberColor(member.name)}}),
+                React.createElement("h3",{className:"serif",style:{fontSize:"18px",fontWeight:"700",color:"#1c1917"}},member.name)
+              ),
+              React.createElement("button",{onClick:onClose,style:{background:"none",border:"none",color:"#a8a29e",fontSize:"24px",cursor:"pointer",lineHeight:1}},"×")
+            ),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"12px",marginTop:"8px"}},
+              React.createElement("span",{className:"serif",style:{fontSize:"24px",fontWeight:"900",color:"#1c1917"}},member.total+" pts"),
+              React.createElement("span",{style:badgeStyle("default")},member.breakdown.length+" events"),
+              React.createElement("span",{style:badgeStyle("default")},"Avg "+(member.total/Math.max(member.breakdown.length,1)).toFixed(1))
+            )
+          ),
+          React.createElement("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"8px"}},
+            member.breakdown.map((b,i)=>
+              React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:"12px",padding:"10px",borderRadius:"8px",background:"#fafaf9"}},
+                React.createElement("div",{style:{flex:1,minWidth:0}},
+                  React.createElement("div",{style:{fontSize:"14px",fontWeight:"500",color:"#292524"}},b.tournament),
+                  React.createElement("div",{style:{fontSize:"12px",color:"#78716c"}},b.golfer)
+                ),
+                React.createElement("div",{style:{fontSize:"14px",fontWeight:"700",padding:"2px 8px",borderRadius:"4px",color:b.pts<=10?"#047857":b.pts>=65?"#dc2626":b.pts<=20?"#0369a1":"#44403c",background:b.pts<=10?"#ecfdf5":b.pts>=65?"#fef2f2":b.pts<=20?"#f0f9ff":"#f5f5f4"}},b.pts)
+              )
+            )
+          ),
+          React.createElement("div",{style:{padding:"16px",borderTop:"1px solid #f5f5f4"}},
+            React.createElement("div",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",marginBottom:"8px"}},"Golfers Used ("+member.usedGolfers.length+")"),
+            React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},
+              member.usedGolfers.map((g,i)=>React.createElement("span",{key:i,style:badgeStyle("pick")},g))
+            )
+          )
+        )
+      );
+    }
+
+    // ─── Main App ───
+    function App(){
+      const [tab,setTab]=useState("leaderboard");
+      const [selectedMember,setSelectedMember]=useState(null);
+      const [expandedTourn,setExpandedTourn]=useState(null);
+
+      const completedTournaments=TOURNAMENTS.filter(t=>t.status==="completed");
+      const upcomingTournaments=TOURNAMENTS.filter(t=>t.status==="upcoming");
+
+      const stats=useMemo(()=>{
+        const golferPicks={},golferScores={};
+        completedTournaments.forEach(t=>{
+          Object.entries(ALL_PICKS[t.id]||{}).forEach(([m,d])=>{
+            golferPicks[d.golfer]=(golferPicks[d.golfer]||0)+1;
+            if(!golferScores[d.golfer])golferScores[d.golfer]=[];
+            golferScores[d.golfer].push(d.score);
+          });
+        });
+        const mostPicked=Object.entries(golferPicks).sort((a,b)=>b[1]-a[1]).slice(0,10);
+        const bestAvg=Object.entries(golferScores).filter(([_,s])=>s.length>=2).map(([n,s])=>({name:n,avg:s.reduce((a,b)=>a+b,0)/s.length,count:s.length})).sort((a,b)=>a.avg-b.avg).slice(0,8);
+        return{mostPicked,bestAvg};
+      },[]);
+
+      const leader=LEADERBOARD[0];
+      const lastPlace=LEADERBOARD[LEADERBOARD.length-1];
+
+      const card={background:"white",borderRadius:"12px",boxShadow:"0 1px 2px rgba(0,0,0,0.05)",border:"1px solid #e7e5e4",overflow:"hidden"};
+      const cardHeader={padding:"16px",borderBottom:"1px solid #f5f5f4",display:"flex",alignItems:"center",justifyContent:"space-between"};
+
+      return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg, #f8f7f4 0%, #eae8e1 100%)"}},
+
+        // Header
+        React.createElement("header",{style:{position:"relative",overflow:"hidden",background:"linear-gradient(135deg, #1b4332 0%, #2d6a4f 40%, #40916c 100%)"}},
+          React.createElement("div",{style:{position:"absolute",inset:0,opacity:0.07,backgroundImage:"radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)",backgroundSize:"60px 60px, 40px 40px"}}),
+          React.createElement("div",{style:{position:"relative",maxWidth:"720px",margin:"0 auto",padding:"24px 16px",textAlign:"center"}},
+            React.createElement("div",{style:{color:"rgba(167,243,208,0.7)",fontSize:"11px",fontWeight:"600",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"4px"}},"Hud's Golf Pool"),
+            React.createElement("h1",{className:"serif",style:{fontSize:"28px",fontWeight:"900",color:"white",letterSpacing:"-0.5px"}},"2026 PGA Tour Pool"),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:"16px",marginTop:"12px",color:"rgba(209,250,229,0.8)",fontSize:"14px"}},
+              React.createElement("span",null,MEMBERS.length+" members"),
+              React.createElement("span",{style:{width:"4px",height:"4px",borderRadius:"50%",background:"rgba(167,243,208,0.5)"}}),
+              React.createElement("span",null,completedTournaments.length+"/"+TOURNAMENTS.length+" events"),
+              React.createElement("span",{style:{width:"4px",height:"4px",borderRadius:"50%",background:"rgba(167,243,208,0.5)"}}),
+              React.createElement("span",{style:{color:"#fcd34d",fontWeight:"500"}},"⛳ Leader: "+leader.name+" ("+leader.total+")")
+            )
+          )
+        ),
+
+        // Nav
+        React.createElement("div",{style:{maxWidth:"720px",margin:"-12px auto 0",padding:"0 16px",position:"relative",zIndex:10}},
+          React.createElement("div",{style:{background:"white",borderRadius:"12px",boxShadow:"0 1px 2px rgba(0,0,0,0.05)",border:"1px solid #e7e5e4",padding:"6px"}},
+            React.createElement(Tabs,{active:tab,onChange:setTab,tabs:[
+              {id:"leaderboard",label:"Leaderboard"},
+              {id:"picks",label:"Picks"},
+              {id:"schedule",label:"Schedule"},
+              {id:"stats",label:"Stats"},
+            ]})
+          )
+        ),
+
+        // Main content
+        React.createElement("main",{style:{maxWidth:"720px",margin:"0 auto",padding:"20px 16px"}},
+
+          // LEADERBOARD
+          tab==="leaderboard"&&React.createElement("div",{className:"fade-up"},
+            React.createElement("div",{style:card},
+              React.createElement("div",{style:cardHeader},
+                React.createElement("h2",{className:"serif",style:{fontWeight:"700",color:"#1c1917",fontSize:"18px"}},"Standings"),
+                React.createElement("div",{style:{fontSize:"12px",color:"#a8a29e"}},"Low score wins • "+completedTournaments.length+" events")
+              ),
+              React.createElement("div",null,
+                LEADERBOARD.map((m,i)=>{
+                  const avg=m.breakdown.length>0?(m.total/m.breakdown.length).toFixed(1):"–";
+                  const best=m.breakdown.length>0?Math.min(...m.breakdown.map(b=>b.pts)):null;
+                  const worst=m.breakdown.length>0?Math.max(...m.breakdown.map(b=>b.pts)):null;
+                  const gap=i===0?null:m.total-leader.total;
+                  return React.createElement("div",{key:m.name,className:"golf-stripe hover-row",onClick:()=>setSelectedMember(m),style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px 16px",cursor:"pointer",transition:"background 0.15s"}},
+                    React.createElement("div",{className:cn("pos-badge",i===0&&"pos-1",i===1&&"pos-2",i===2&&"pos-3"),style:i>2?{background:"#f5f5f4",color:"#78716c"}:undefined},i+1),
+                    React.createElement("div",{style:{flex:1,minWidth:0}},
+                      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},
+                        React.createElement("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:memberColor(m.name)}}),
+                        React.createElement("span",{style:{fontWeight:"600",color:"#1c1917",fontSize:"14px"}},m.name),
+                        gap!==null&&React.createElement("span",{style:{fontSize:"12px",color:"#a8a29e"}},"+"+gap)
+                      ),
+                      React.createElement("div",{style:{fontSize:"12px",color:"#a8a29e",marginTop:"2px",display:"flex",gap:"8px"}},
+                        React.createElement("span",null,"Avg: "+avg),
+                        best!==null&&React.createElement("span",null,"Best: "+best),
+                        worst!==null&&worst>=65&&React.createElement("span",{style:{color:"#f87171"}},"Has MC/65")
+                      )
+                    ),
+                    React.createElement("div",{style:{textAlign:"right"}},
+                      React.createElement("div",{className:"serif",style:{fontWeight:"700",color:"#1c1917",fontSize:"20px"}},m.total),
+                      React.createElement("div",{style:{fontSize:"12px",color:"#a8a29e"}},"pts")
+                    )
+                  );
+                })
+              )
+            ),
+            React.createElement("div",{style:{...card,marginTop:"16px",padding:"16px"},className:"fade-up stagger-2"},
+              React.createElement("h3",{className:"serif",style:{fontWeight:"700",color:"#1c1917",marginBottom:"8px"}},"Pool Rules"),
+              React.createElement("div",{style:{fontSize:"14px",color:"#57534e",lineHeight:"1.7"}},
+                React.createElement("p",null,"Each member picks one golfer per tournament. Once a golfer is picked, they ",React.createElement("strong",null,"cannot be reused")," the rest of the season."),
+                React.createElement("p",{style:{marginTop:"6px"}},"Finishing position = points earned. ",React.createElement("strong",null,"Lowest total score wins.")),
+                React.createElement("p",{style:{marginTop:"6px"}},React.createElement("span",{style:badgeStyle("major")},"Majors")," are worth ",React.createElement("strong",null,"double points"),"."),
+                React.createElement("p",{style:{marginTop:"6px"}},"Missed cut, withdrawal, or DQ = ",React.createElement("strong",null,"65 pts")," (max penalty).")
+              )
+            )
+          ),
+
+          // PICKS
+          tab==="picks"&&React.createElement("div",{className:"fade-up",style:{display:"flex",flexDirection:"column",gap:"16px"}},
+            completedTournaments.map(t=>{
+              const isExpanded=expandedTourn===t.id;
+              const tournPicks=MEMBERS.map(name=>{
+                const pick=ALL_PICKS[t.id]?.[name];
+                return pick?{name,golfer:pick.golfer,score:pick.score}:null;
+              }).filter(Boolean).sort((a,b)=>a.score-b.score);
+              return React.createElement("div",{key:t.id,style:card},
+                React.createElement("div",{onClick:()=>setExpandedTourn(isExpanded?null:t.id),style:{...cardHeader,cursor:"pointer",transition:"background 0.15s"},className:"hover-row"},
+                  React.createElement("div",null,
+                    React.createElement("h3",{className:"serif",style:{fontWeight:"700",color:"#1c1917",fontSize:"14px"}},t.name),
+                    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginTop:"4px"}},
+                      React.createElement("span",{style:badgeStyle("completed")},"Complete"),
+                      t.isMajor&&React.createElement("span",{style:badgeStyle("major")},"Major (2×)"),
+                      tournPicks.length>0&&React.createElement("span",{style:{fontSize:"12px",color:"#a8a29e"}},"Best: "+tournPicks[0].name+" ("+tournPicks[0].golfer+", "+tournPicks[0].score+"pts)")
+                    )
+                  ),
+                  React.createElement("div",{style:{color:"#a8a29e",fontSize:"18px"}},isExpanded?"−":"+")
+                ),
+                isExpanded&&React.createElement("div",null,
+                  tournPicks.map((p,i)=>
+                    React.createElement("div",{key:p.name,className:"golf-stripe",style:{display:"flex",alignItems:"center",gap:"12px",padding:"10px 16px"}},
+                      React.createElement("div",{style:{fontSize:"12px",fontFamily:"monospace",color:"#a8a29e",width:"20px",textAlign:"right"}},i+1),
+                      React.createElement("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:memberColor(p.name)}}),
+                      React.createElement("span",{style:{fontWeight:"500",color:"#292524",fontSize:"14px",flex:1}},p.name),
+                      React.createElement("span",{style:badgeStyle("pick")},p.golfer),
+                      React.createElement("div",{style:{fontSize:"14px",fontWeight:"700",minWidth:"36px",textAlign:"right",color:p.score<=10?"#047857":p.score>=65?"#dc2626":p.score<=25?"#0369a1":"#44403c"}},p.score)
+                    )
+                  )
+                )
+              );
+            })
+          ),
+
+          // SCHEDULE
+          tab==="schedule"&&React.createElement("div",{className:"fade-up"},
+            React.createElement("div",{style:card},
+              React.createElement("div",{style:cardHeader},
+                React.createElement("h2",{className:"serif",style:{fontWeight:"700",color:"#1c1917"}},"Tournament Schedule"),
+                React.createElement("div",{style:{fontSize:"12px",color:"#a8a29e"}},TOURNAMENTS.length+" events")
+              ),
+              React.createElement("div",{style:{maxHeight:"70vh",overflowY:"auto"},className:"scrollbar-hide"},
+                TOURNAMENTS.map((t,i)=>
+                  React.createElement("div",{key:t.id,className:"golf-stripe",style:{display:"flex",alignItems:"center",gap:"12px",padding:"10px 16px"}},
+                    React.createElement("div",{style:{fontSize:"12px",fontFamily:"monospace",color:"#d6d3d1",width:"20px",textAlign:"right"}},i+1),
+                    React.createElement("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:t.status==="completed"?"#10b981":"#d6d3d1"}}),
+                    React.createElement("div",{style:{flex:1,minWidth:0}},
+                      React.createElement("span",{style:{fontSize:"14px",fontWeight:"500",color:t.status==="completed"?"#292524":"#78716c"}},t.name)
+                    ),
+                    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
+                      t.isMajor&&React.createElement("span",{style:badgeStyle("major")},"Major"),
+                      t.status==="completed"&&React.createElement("span",{style:badgeStyle("active")},"Done")
+                    )
+                  )
+                )
+              )
+            )
+          ),
+
+          // STATS
+          tab==="stats"&&React.createElement("div",{className:"fade-up",style:{display:"flex",flexDirection:"column",gap:"16px"}},
+            React.createElement("div",{style:card},
+              React.createElement("div",{style:cardHeader},
+                React.createElement("div",null,
+                  React.createElement("h2",{className:"serif",style:{fontWeight:"700",color:"#1c1917"}},"Most Picked Golfers"),
+                  React.createElement("div",{style:{fontSize:"12px",color:"#a8a29e",marginTop:"2px"}},"Across all "+completedTournaments.length+" completed events")
+                )
+              ),
+              React.createElement("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"10px"}},
+                stats.mostPicked.map(([golfer,count],i)=>
+                  React.createElement("div",{key:golfer,style:{display:"flex",alignItems:"center",gap:"12px"}},
+                    React.createElement("div",{style:{fontSize:"12px",fontFamily:"monospace",color:"#a8a29e",width:"20px",textAlign:"right"}},i+1),
+                    React.createElement("div",{style:{flex:1}},
+                      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},
+                        React.createElement("span",{style:{fontSize:"14px",fontWeight:"500",color:"#292524"}},golfer),
+                        React.createElement("span",{style:{fontSize:"12px",color:"#a8a29e"}},count+" picks")
+                      ),
+                      React.createElement("div",{style:{marginTop:"4px",height:"8px",background:"#f5f5f4",borderRadius:"999px",overflow:"hidden"}},
+                        React.createElement("div",{style:{height:"100%",borderRadius:"999px",width:(count/stats.mostPicked[0][1]*100)+"%",background:"linear-gradient(90deg, #2d6a4f, #40916c)",transition:"width 0.5s ease"}})
+                      )
+                    )
+                  )
+                )
+              )
+            ),
+            React.createElement("div",{style:card},
+              React.createElement("div",{style:cardHeader},
+                React.createElement("div",null,
+                  React.createElement("h2",{className:"serif",style:{fontWeight:"700",color:"#1c1917"}},"Best Performing Golfers"),
+                  React.createElement("div",{style:{fontSize:"12px",color:"#a8a29e",marginTop:"2px"}},"Average score when picked (min 2 picks)")
+                )
+              ),
+              React.createElement("div",null,
+                stats.bestAvg.map((g,i)=>
+                  React.createElement("div",{key:g.name,className:"golf-stripe",style:{display:"flex",alignItems:"center",gap:"12px",padding:"10px 16px"}},
+                    React.createElement("div",{style:{fontSize:"12px",fontFamily:"monospace",color:"#a8a29e",width:"20px",textAlign:"right"}},i+1),
+                    React.createElement("span",{style:{fontSize:"14px",fontWeight:"500",color:"#292524",flex:1}},g.name),
+                    React.createElement("span",{style:{fontSize:"12px",color:"#a8a29e"}},g.count+" picks"),
+                    React.createElement("div",{style:{fontSize:"14px",fontWeight:"700",color:g.avg<=10?"#047857":g.avg<=20?"#0369a1":"#44403c"}},g.avg.toFixed(1)+" avg")
+                  )
+                )
+              )
+            ),
+            React.createElement("div",{style:{...card,padding:"16px"}},
+              React.createElement("h2",{className:"serif",style:{fontWeight:"700",color:"#1c1917",marginBottom:"12px"}},"Season Highlights"),
+              React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px"}},
+                React.createElement("div",{style:{background:"#ecfdf5",borderRadius:"8px",padding:"12px",border:"1px solid #d1fae5"}},
+                  React.createElement("div",{style:{fontSize:"12px",color:"#047857",fontWeight:"500"}},"Leader"),
+                  React.createElement("div",{className:"serif",style:{fontWeight:"700",color:"#064e3b",fontSize:"18px"}},leader.name),
+                  React.createElement("div",{style:{fontSize:"14px",color:"#047857"}},leader.total+" pts")
+                ),
+                React.createElement("div",{style:{background:"#fef2f2",borderRadius:"8px",padding:"12px",border:"1px solid #fecaca"}},
+                  React.createElement("div",{style:{fontSize:"12px",color:"#dc2626",fontWeight:"500"}},"Last Place"),
+                  React.createElement("div",{className:"serif",style:{fontWeight:"700",color:"#7f1d1d",fontSize:"18px"}},lastPlace.name),
+                  React.createElement("div",{style:{fontSize:"14px",color:"#dc2626"}},lastPlace.total+" pts")
+                ),
+                (()=>{
+                  let best={name:"",pts:999,tourn:"",golfer:""};
+                  LEADERBOARD.forEach(m=>m.breakdown.forEach(b=>{if(b.pts<best.pts)best={name:m.name,pts:b.pts,tourn:b.tournament,golfer:b.golfer};}));
+                  return React.createElement("div",{style:{background:"#fffbeb",borderRadius:"8px",padding:"12px",border:"1px solid #fde68a"}},
+                    React.createElement("div",{style:{fontSize:"12px",color:"#b45309",fontWeight:"500"}},"Best Single Week"),
+                    React.createElement("div",{className:"serif",style:{fontWeight:"700",color:"#78350f"}},best.golfer),
+                    React.createElement("div",{style:{fontSize:"14px",color:"#b45309"}},ordinal(best.pts)+" — "+best.name),
+                    React.createElement("div",{style:{fontSize:"12px",color:"#d97706"}},best.tourn)
+                  );
+                })(),
+                (()=>{
+                  const allScores=LEADERBOARD.flatMap(m=>m.breakdown.map(b=>b.pts));
+                  const avg=allScores.length>0?(allScores.reduce((a,b)=>a+b,0)/allScores.length).toFixed(1):"–";
+                  const mcCount=allScores.filter(s=>s>=65).length;
+                  return React.createElement("div",{style:{background:"#f0f9ff",borderRadius:"8px",padding:"12px",border:"1px solid #bae6fd"}},
+                    React.createElement("div",{style:{fontSize:"12px",color:"#0369a1",fontWeight:"500"}},"Avg Score / Week"),
+                    React.createElement("div",{className:"serif",style:{fontWeight:"700",color:"#0c4a6e",fontSize:"18px"}},avg),
+                    React.createElement("div",{style:{fontSize:"14px",color:"#0369a1"}},mcCount+" missed cuts total")
+                  );
+                })()
+              )
+            )
+          )
+        ),
+
+        // Modal
+        React.createElement(MemberDetailModal,{member:selectedMember,open:!!selectedMember,onClose:()=>setSelectedMember(null)})
+      );
+    }
+
+    ReactDOM.render(React.createElement(App), document.getElementById("root"));
+  </script>
+</body>
+</html>
