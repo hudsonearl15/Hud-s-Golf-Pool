@@ -123,6 +123,8 @@ function App(){
   var _spm=us(false),spm=_spm[0],setSpm=_spm[1];
   var _pg=us(""),pg=_pg[0],setPg=_pg[1];
   var _pt=us(""),pt=_pt[0],setPt=_pt[1];
+  var _pe=us(""),pe=_pe[0],setPe=_pe[1];
+  var _actT=us(null),actT=_actT[0],setActT=_actT[1];
 
   // Admin state
   var _adT=us(""),adT=_adT[0],setAdT=_adT[1];
@@ -139,6 +141,8 @@ function App(){
   var uT=TN.filter(function(t){return t.st==="upcoming"});
   var ld=LB[0],last=LB[LB.length-1];
   var isAdmin=user===ADMIN;
+  // Picks are hidden from non-admin users if a deadline exists and revealsAt hasn't passed
+  var picksHidden=!isAdmin&&dl&&(dl.revealsAt?Date.now()<dl.revealsAt:true);
 
   // Check saved session
   ue(function(){
@@ -152,7 +156,8 @@ function App(){
     var u2=db.collection("weeklyPicks").onSnapshot(function(s){var p={};s.forEach(function(d){p[d.id]=d.data();});setWp(p);});
     var u3=db.collection("payments").doc("status").onSnapshot(function(d){if(d.exists)setPay(d.data());});
     var u4=db.collection("settings").doc("deadline").onSnapshot(function(d){if(d.exists)setDl(d.data());});
-    return function(){u1();u2();u3();u4();};
+    var u5=db.collection("settings").doc("activeTournament").onSnapshot(function(d){if(d.exists)setActT(d.data());else{var nxt=TN.find(function(t){return t.st==="upcoming"});if(nxt)setActT({id:nxt.id,name:nxt.n});}});
+    return function(){u1();u2();u3();u4();u5();};
   },[screen]);
 
   ue(function(){if(chatEnd.current)chatEnd.current.scrollIntoView({behavior:"smooth"});},[msgs]);
@@ -194,8 +199,17 @@ function App(){
 
   // Picks
   function submitPick(){
-    if(!pg.trim()||!pt||!user)return;
-    db.collection("weeklyPicks").doc(pt+"_"+user).set({member:user,tournament:pt,golfer:pg.trim(),timestamp:Date.now()});
+    var tid=actT?actT.id:pt;
+    if(!pg.trim()||!tid||!user)return;
+    var golferName=pg.trim();
+    // Check if golfer already used (case-insensitive)
+    var isUsed=usedG.some(function(g){return g.toLowerCase()===golferName.toLowerCase()});
+    if(isUsed){setPe("You already picked "+golferName+", dumbass!");return;}
+    // Check if already submitted for this tournament
+    var existingPick=wp[tid+"_"+user];
+    if(existingPick){setPe("You already submitted "+existingPick.golfer+" for this tournament. Contact Hudson to change it.");return;}
+    setPe("");
+    db.collection("weeklyPicks").doc(tid+"_"+user).set({member:user,tournament:tid,golfer:golferName,timestamp:Date.now()});
     setPg("");setSpm(false);
   }
 
@@ -222,8 +236,14 @@ function App(){
 
   function adminSetDeadline(){
     if(!dlText.trim())return;
-    db.collection("settings").doc("deadline").set({text:dlText.trim(),time:dlTime.trim(),updated:Date.now()});
-    alert("Deadline set!");
+    var reveals=null;
+    if(dlTime.trim()){
+      // Try to parse the time string into a timestamp
+      var d=new Date(dlTime.trim());
+      if(!isNaN(d.getTime()))reveals=d.getTime();
+    }
+    db.collection("settings").doc("deadline").set({text:dlText.trim(),time:dlTime.trim(),revealsAt:reveals,updated:Date.now()});
+    alert("Deadline set!"+(reveals?" Picks hidden until "+new Date(reveals).toLocaleString():" (No auto-reveal set — picks stay hidden until you clear the deadline)"));
   }
 
   function adminClearDeadline(){
@@ -385,19 +405,40 @@ function App(){
 
       // PICKS
       tab==="picks"&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
-        h("button",{className:"bp",onClick:function(){setSpm(true)}},"📋 Submit My Pick"),
+        h("button",{className:"bp",onClick:function(){setSpm(true);setPe("")}},actT?"📋 Submit Pick for "+actT.name:"📋 Submit My Pick"),
         (function(){var arr=[];uT.forEach(function(t){
-          var tp=Object.values(wp).filter(function(p){return p.tournament===t.id});
-          if(tp.length>0)arr.push(h("div",{key:t.id,className:"cd"},
-            h("div",{className:"ch"},h("span",{style:{fontWeight:"600",fontSize:"14px"}},t.n),h("span",{className:"bg bg-a"},"Upcoming")),
-            h("div",{style:{padding:"10px 14px",display:"flex",flexWrap:"wrap",gap:"6px"}},
-              tp.map(function(p,i){return h("div",{key:i,style:{display:"flex",alignItems:"center",gap:"6px",background:"#f5f5f4",borderRadius:"6px",padding:"4px 10px",fontSize:"12px"}},
-                h("div",{style:{width:"6px",height:"6px",borderRadius:"50%",background:mc(p.member)}}),
-                h("span",{style:{fontWeight:"500"}},p.member),h("span",{style:{color:"#a8a29e"}},"→"),
-                h("span",{className:"bg bg-pk"},p.golfer)
-              )})
-            )
-          ));
+          var allTp=Object.values(wp).filter(function(p){return p.tournament===t.id});
+          // If picks are hidden, only show current user's pick and count of others
+          if(allTp.length===0)return;
+          if(picksHidden){
+            var myPick=allTp.find(function(p){return p.member===user});
+            var otherCount=allTp.length-(myPick?1:0);
+            arr.push(h("div",{key:t.id,className:"cd"},
+              h("div",{className:"ch"},h("span",{style:{fontWeight:"600",fontSize:"14px"}},t.n),h("span",{className:"bg bg-a"},"Upcoming")),
+              h("div",{style:{padding:"10px 14px"}},
+                myPick&&h("div",{style:{display:"flex",alignItems:"center",gap:"6px",background:"#ecfdf5",borderRadius:"6px",padding:"6px 10px",fontSize:"12px",marginBottom:"6px",border:"1px solid #a7f3d0"}},
+                  h("div",{style:{width:"6px",height:"6px",borderRadius:"50%",background:mc(user)}}),
+                  h("span",{style:{fontWeight:"600"}},"Your pick:"),
+                  h("span",{className:"bg bg-pk"},myPick.golfer)
+                ),
+                h("div",{style:{display:"flex",alignItems:"center",gap:"8px",padding:"8px 10px",background:"#f5f5f4",borderRadius:"6px",fontSize:"13px",color:"#78716c"}},
+                  h("span",{style:{fontSize:"16px"}},"🔒"),
+                  h("span",null,otherCount+" other pick"+(otherCount!==1?"s":"")+" submitted — revealed after deadline")
+                )
+              )
+            ));
+          }else{
+            arr.push(h("div",{key:t.id,className:"cd"},
+              h("div",{className:"ch"},h("span",{style:{fontWeight:"600",fontSize:"14px"}},t.n),h("span",{className:"bg bg-a"},"Upcoming")),
+              h("div",{style:{padding:"10px 14px",display:"flex",flexWrap:"wrap",gap:"6px"}},
+                allTp.map(function(p,i){return h("div",{key:i,style:{display:"flex",alignItems:"center",gap:"6px",background:"#f5f5f4",borderRadius:"6px",padding:"4px 10px",fontSize:"12px"}},
+                  h("div",{style:{width:"6px",height:"6px",borderRadius:"50%",background:mc(p.member)}}),
+                  h("span",{style:{fontWeight:"500"}},p.member),h("span",{style:{color:"#a8a29e"}},"→"),
+                  h("span",{className:"bg bg-pk"},p.golfer)
+                )})
+              )
+            ));
+          }
         });return arr;})(),
         cT.map(function(t){
           var isE=expT===t.id;
@@ -511,6 +552,28 @@ function App(){
 
       // ═══ ADMIN TAB (Hudson only) ═══
       tab==="admin"&&isAdmin&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
+        // Set Active Tournament
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Set Active Tournament"),
+            actT&&h("span",{className:"bg bg-a"},"Current: "+actT.name)
+          ),
+          h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"10px"}},
+            h("div",{style:{fontSize:"13px",color:"#57534e"}},"This determines which tournament members see when submitting picks."),
+            h("div",{style:{display:"flex",flexDirection:"column",gap:"6px"}},
+              uT.map(function(t){
+                var isCurrent=actT&&actT.id===t.id;
+                return h("button",{key:t.id,onClick:function(){
+                  db.collection("settings").doc("activeTournament").set({id:t.id,name:t.n});
+                },style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px",borderRadius:"8px",border:isCurrent?"2px solid #2d6a4f":"1px solid #e7e5e4",background:isCurrent?"#ecfdf5":"white",textAlign:"left",fontSize:"13px",fontWeight:"500",color:isCurrent?"#064e3b":"#292524",transition:"all .15s"}},
+                  h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",background:isCurrent?"#10b981":"#d6d3d1"}}),
+                  t.n,t.mj&&h("span",{className:"bg bg-m",style:{marginLeft:"4px"}},"Major"),
+                  isCurrent&&h("span",{style:{marginLeft:"auto",fontSize:"11px",color:"#047857",fontWeight:"600"}},"✓ Active")
+                );
+              })
+            )
+          )
+        ),
+
         // Record Result
         h("div",{className:"cd"},
           h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Record Tournament Result")),
@@ -525,13 +588,19 @@ function App(){
 
         // Set Deadline
         h("div",{className:"cd"},
-          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Set Pick Deadline")),
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Set Pick Deadline"),
+            picksHidden===false&&dl?h("span",{className:"bg bg-a"},"Picks Visible"):dl?h("span",{className:"bg bg-up"},"Picks Hidden"):null
+          ),
           h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
+            h("div",{style:{fontSize:"13px",color:"#57534e",padding:"10px 12px",background:"#f5f5f4",borderRadius:"8px"}},"While a deadline is active, members can only see their own pick. Other picks are hidden until the deadline is cleared or the reveal time passes."),
             h("input",{className:"if",placeholder:"Deadline message (e.g. 'Picks due for Arnold Palmer!')",value:dlText,onChange:function(e){setDlText(e.target.value)}}),
-            h("input",{className:"if",placeholder:"Time (e.g. 'Thursday 11:00 AM ET')",value:dlTime,onChange:function(e){setDlTime(e.target.value)}}),
+            h("div",null,
+              h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Reveal picks at (date/time):"),
+              h("input",{className:"if",type:"datetime-local",value:dlTime,onChange:function(e){setDlTime(e.target.value)}})
+            ),
             h("div",{style:{display:"flex",gap:"8px"}},
               h("button",{className:"bp",style:{flex:1},onClick:adminSetDeadline},"Set Deadline"),
-              dl&&h("button",{className:"bd",onClick:adminClearDeadline},"Clear")
+              dl&&h("button",{className:"bd",onClick:adminClearDeadline},"Clear (Reveal Picks)")
             )
           )
         ),
@@ -595,21 +664,36 @@ function App(){
     ),
 
     // PICK MODAL
-    spm&&h("div",{style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"},onClick:function(){setSpm(false)}},
+    spm&&h("div",{style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"},onClick:function(){setSpm(false);setPe("")}},
       h("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,.4)",backdropFilter:"blur(4px)"}}),
       h("div",{style:{position:"relative",background:"white",borderRadius:"12px",boxShadow:"0 25px 50px rgba(0,0,0,.25)",maxWidth:"420px",width:"100%",animation:"modalIn .2s ease-out"},onClick:function(e){e.stopPropagation()}},
         h("div",{style:{padding:"16px",borderBottom:"1px solid #e7e5e4",display:"flex",justifyContent:"space-between",alignItems:"center"}},
           h("h3",{className:"sf",style:{fontSize:"17px",fontWeight:"700"}},"Submit Your Pick"),
-          h("button",{onClick:function(){setSpm(false)},style:{background:"none",border:"none",color:"#a8a29e",fontSize:"22px",lineHeight:1}},"×")
+          h("button",{onClick:function(){setSpm(false);setPe("")},style:{background:"none",border:"none",color:"#a8a29e",fontSize:"22px",lineHeight:1}},"×")
         ),
         h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
-          h("select",{className:"if",value:pt,onChange:function(e){setPt(e.target.value)}},h("option",{value:""},"Select tournament..."),uT.map(function(t){return h("option",{key:t.id,value:t.id},t.n+(t.mj?" (Major)":""))})),
-          h("input",{className:"if",placeholder:"Golfer name",value:pg,onChange:function(e){setPg(e.target.value)},onKeyDown:function(e){if(e.key==="Enter")submitPick()}}),
-          usedG.length>0&&h("div",null,
-            h("div",{style:{fontSize:"11px",color:"#78716c",fontWeight:"500",marginBottom:"4px"}},"Already used:"),
-            h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},usedG.map(function(g,i){return h("span",{key:i,className:"bg bg-d",style:{fontSize:"10px"}},g)}))
-          ),
-          h("button",{className:"bp",onClick:submitPick},"Submit Pick")
+          // Show current tournament (no dropdown)
+          actT?h("div",{style:{padding:"12px 14px",background:"linear-gradient(135deg,#ecfdf5,#d1fae5)",borderRadius:"8px",border:"1px solid #a7f3d0"}},
+            h("div",{style:{fontSize:"11px",color:"#047857",fontWeight:"600",textTransform:"uppercase",letterSpacing:"1px"}},"This Week's Tournament"),
+            h("div",{className:"sf",style:{fontSize:"16px",fontWeight:"700",color:"#064e3b",marginTop:"4px"}},actT.name),
+            (function(){var tn=TN.find(function(t){return t.id===actT.id});return tn&&tn.mj?h("span",{className:"bg bg-m",style:{marginTop:"6px"}},"Major (2× Points)"):null})()
+          ):h("div",{style:{padding:"12px",background:"#fef2f2",borderRadius:"8px",border:"1px solid #fecaca",fontSize:"13px",color:"#b91c1c"}},"No active tournament set. Ask Hudson to set one in the Admin panel."),
+          // Check if already picked
+          actT&&wp[actT.id+"_"+user]?h("div",{style:{padding:"12px",background:"#fffbeb",borderRadius:"8px",border:"1px solid #fde68a"}},
+            h("div",{style:{fontSize:"13px",color:"#92400e"}},"You already submitted: ",h("strong",null,wp[actT.id+"_"+user].golfer)),
+            h("div",{style:{fontSize:"11px",color:"#b45309",marginTop:"4px"}},"Contact Hudson if you need to change your pick.")
+          ):actT&&h(React.Fragment,null,
+            h("div",null,
+              h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Golfer Name"),
+              h("input",{className:"if",placeholder:"e.g. Scottie Scheffler",value:pg,onChange:function(e){setPg(e.target.value);setPe("")},onKeyDown:function(e){if(e.key==="Enter")submitPick()}})
+            ),
+            pe&&h("div",{style:{padding:"10px 12px",background:"#fef2f2",borderRadius:"8px",border:"1px solid #fecaca",fontSize:"13px",color:"#b91c1c"}},pe),
+            usedG.length>0&&h("div",null,
+              h("div",{style:{fontSize:"11px",color:"#dc2626",fontWeight:"600",marginBottom:"4px"}},"⚠️ Already used this season (cannot pick again):"),
+              h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},usedG.map(function(g,i){return h("span",{key:i,style:{display:"inline-flex",alignItems:"center",padding:"2px 8px",borderRadius:"4px",fontSize:"10px",fontWeight:"500",background:"#fee2e2",color:"#b91c1c"}},g)}))
+            ),
+            h("button",{className:"bp",onClick:submitPick},"Submit Pick")
+          )
         )
       )
     )
