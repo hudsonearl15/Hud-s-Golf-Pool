@@ -2,49 +2,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Hud's Golf Pool — 2026 PGA Tour</title>
-  <meta name="description" content="Hud's Golf Pool — 2026 PGA Tour Season" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'DM Sans',system-ui,sans-serif;background:linear-gradient(180deg,#f8f7f4 0%,#eae8e1 100%);min-height:100vh;color:#1c1917;}
-    .serif{font-family:'Playfair Display',Georgia,serif;}
-    @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(0.97);}to{opacity:1;transform:none;}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-    .fade-up{animation:fadeUp 0.4s ease-out both;}
-    .golf-stripe:nth-child(even){background:rgba(0,0,0,0.02);}
-    .hover-row:hover{background:rgba(0,0,0,0.03);}
-    .pos-badge{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:999px;font-weight:700;font-size:13px;}
-    .pos-1{background:linear-gradient(135deg,#ffd700,#ffec80);color:#7c6200;box-shadow:0 1px 4px rgba(255,215,0,0.4);}
-    .pos-2{background:linear-gradient(135deg,#c0c0c0,#e8e8e8);color:#555;}
-    .pos-3{background:linear-gradient(135deg,#cd7f32,#e8a862);color:#5c3a10;}
-    .scrollbar-hide::-webkit-scrollbar{display:none;}.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none;}
-    button{cursor:pointer;font-family:inherit;}input,select,textarea{font-family:inherit;}
-    .tab-btn{flex:1;padding:8px 10px;border-radius:6px;font-size:12px;font-weight:500;border:none;transition:all 0.2s;background:transparent;color:#78716c;}
-    .tab-btn.active{background:white;color:#1c1917;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
-    .card{background:white;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05);border:1px solid #e7e5e4;overflow:hidden;}
-    .card-header{padding:14px 16px;border-bottom:1px solid #f5f5f4;display:flex;align-items:center;justify-content:space-between;}
-    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;}
-    .badge-default{background:#e7e5e4;color:#44403c;}.badge-major{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
-    .badge-active{background:#d1fae5;color:#065f46;}.badge-completed{background:#f5f5f4;color:#78716c;}
-    .badge-pick{background:#e0f2fe;color:#075985;}.badge-paid{background:#d1fae5;color:#065f46;}.badge-unpaid{background:#fee2e2;color:#b91c1c;}
-    .btn-primary{background:#2d6a4f;color:white;border:none;padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px;transition:background 0.2s;}
-    .btn-primary:hover{background:#1b4332;}
-    .btn-sm{background:#f5f5f4;color:#44403c;border:1px solid #e7e5e4;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500;transition:all 0.15s;}
-    .btn-sm:hover{background:#e7e5e4;}
-    .input-field{width:100%;border:1px solid #e7e5e4;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;transition:border 0.2s;}
-    .input-field:focus{border-color:#2d6a4f;box-shadow:0 0 0 2px rgba(45,106,79,0.15);}
-    .chat-bubble{padding:8px 12px;border-radius:12px;max-width:80%;font-size:14px;line-height:1.5;word-wrap:break-word;}
-    .chat-other{background:#f5f5f4;color:#292524;align-self:flex-start;border-bottom-left-radius:4px;}
-    .chat-self{background:#2d6a4f;color:white;align-self:flex-end;border-bottom-right-radius:4px;}
-    @media(max-width:500px){.tab-btn{font-size:11px;padding:7px 4px;}}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:linear-gradient(180deg,#f8f7f4,#eae8e1);min-height:100vh;color:#1c1917;}
+    .sf{font-family:'Playfair Display',Georgia,serif;}
+    @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    .fu{animation:fadeUp .4s ease-out both}
+    .gs:nth-child(even){background:rgba(0,0,0,.02)}
+    .hr:hover{background:rgba(0,0,0,.03)}
+    .pb{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:999px;font-weight:700;font-size:13px}
+    .p1{background:linear-gradient(135deg,#ffd700,#ffec80);color:#7c6200;box-shadow:0 1px 4px rgba(255,215,0,.4)}
+    .p2{background:linear-gradient(135deg,#c0c0c0,#e8e8e8);color:#555}
+    .p3{background:linear-gradient(135deg,#cd7f32,#e8a862);color:#5c3a10}
+    .sh::-webkit-scrollbar{display:none}.sh{-ms-overflow-style:none;scrollbar-width:none}
+    button{cursor:pointer;font-family:inherit}input,select,textarea{font-family:inherit}
+    .tb{flex:1;padding:8px 8px;border-radius:6px;font-size:11px;font-weight:500;border:none;transition:all .2s;background:transparent;color:#78716c}
+    .tb.ac{background:white;color:#1c1917;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+    .cd{background:white;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.05);border:1px solid #e7e5e4;overflow:hidden}
+    .ch{padding:14px 16px;border-bottom:1px solid #f5f5f4;display:flex;align-items:center;justify-content:space-between}
+    .bg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+    .bg-d{background:#e7e5e4;color:#44403c}.bg-m{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+    .bg-a{background:#d1fae5;color:#065f46}.bg-c{background:#f5f5f4;color:#78716c}
+    .bg-pk{background:#e0f2fe;color:#075985}.bg-pd{background:#d1fae5;color:#065f46}.bg-up{background:#fee2e2;color:#b91c1c}
+    .bp{background:#2d6a4f;color:white;border:none;padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px;transition:background .2s;width:100%}
+    .bp:hover{background:#1b4332}
+    .bs{background:#f5f5f4;color:#44403c;border:1px solid #e7e5e4;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500;transition:all .15s}
+    .bs:hover{background:#e7e5e4}
+    .bd{background:#dc2626;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500}
+    .bd:hover{background:#b91c1c}
+    .ba{background:#2563eb;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500}
+    .if{width:100%;border:1px solid #e7e5e4;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;transition:border .2s}
+    .if:focus{border-color:#2d6a4f;box-shadow:0 0 0 2px rgba(45,106,79,.15)}
+    .cb{padding:8px 12px;border-radius:12px;max-width:80%;font-size:14px;line-height:1.5;word-wrap:break-word}
+    .co{background:#f5f5f4;color:#292524;align-self:flex-start;border-bottom-left-radius:4px}
+    .cs{background:#2d6a4f;color:white;align-self:flex-end;border-bottom-right-radius:4px}
+    .dl{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .err{color:#dc2626;font-size:13px;margin-top:6px;text-align:center}
+    @media(max-width:500px){.tb{font-size:10px;padding:7px 3px}}
   </style>
 </head>
 <body>
@@ -59,29 +64,26 @@ firebase.initializeApp({
   appId:"1:635205426162:web:8e55d1d27bfe091a91a96b"
 });
 var db=firebase.firestore();
-
-var MEMBERS=["Adam Dory","Jim","Sandy","Frank","Sean","Mark","Kyle","Phil","Dom","Kole","Luke","Jeff","John","Hudson","Kev Liska","Cam","Briggs","Nick","Bo","Kev Mahon","Denis","Kenyon"];
-
-var TOURNAMENTS=[
-  {id:"sony",name:"Sony Open",status:"completed"},{id:"amex",name:"The Amex",status:"completed"},
-  {id:"farmers",name:"Farmers Insurance Open",status:"completed"},{id:"wm",name:"WM Phoenix Open",status:"completed"},
-  {id:"pebble",name:"AT&T Pebble Beach Pro-Am",status:"completed"},{id:"genesis",name:"Genesis Invitational",status:"completed"},
-  {id:"cognizant",name:"Cognizant Classic",status:"completed"},
-  {id:"arnold",name:"Arnold Palmer Invitational",status:"upcoming"},{id:"puerto",name:"Puerto Rico Open",status:"upcoming"},
-  {id:"players",name:"THE PLAYERS Championship",status:"upcoming"},{id:"valspar",name:"Valspar Championship",status:"upcoming"},
-  {id:"houston",name:"Texas Children's Houston Open",status:"upcoming"},{id:"valero",name:"Valero Texas Open",status:"upcoming"},
-  {id:"masters",name:"The Masters",status:"upcoming",isMajor:true},{id:"heritage",name:"RBC Heritage",status:"upcoming"},
-  {id:"zurich",name:"Zurich Classic",status:"upcoming"},{id:"byron",name:"CJ Cup Byron Nelson",status:"upcoming"},
-  {id:"schwab",name:"Charles Schwab Challenge",status:"upcoming"},{id:"memorial",name:"the Memorial Tournament",status:"upcoming"},
-  {id:"canadian",name:"RBC Canadian Open",status:"upcoming"},{id:"usopen",name:"U.S. Open",status:"upcoming",isMajor:true},
-  {id:"travelers",name:"Travelers Championship",status:"upcoming"},{id:"rocket",name:"Rocket Mortgage Classic",status:"upcoming"},
-  {id:"deere",name:"John Deere Classic",status:"upcoming"},{id:"scottish",name:"Genesis Scottish Open",status:"upcoming"},
-  {id:"open",name:"The Open Championship",status:"upcoming",isMajor:true},{id:"3m",name:"3M Open",status:"upcoming"},
-  {id:"wyndham",name:"Wyndham Championship",status:"upcoming"},{id:"stjude",name:"FedEx St. Jude Championship",status:"upcoming"},
-  {id:"bmw",name:"BMW Championship",status:"upcoming"},{id:"tour",name:"TOUR Championship",status:"upcoming"},
-  {id:"pga",name:"PGA Championship",status:"upcoming",isMajor:true}
+var ME=["Adam Dory","Jim","Sandy","Frank","Sean","Mark","Kyle","Phil","Dom","Kole","Luke","Jeff","John","Hudson","Kev Liska","Cam","Briggs","Nick","Bo","Kev Mahon","Denis","Kenyon"];
+var TN=[
+  {id:"sony",n:"Sony Open",st:"completed"},{id:"amex",n:"The Amex",st:"completed"},
+  {id:"farmers",n:"Farmers Insurance Open",st:"completed"},{id:"wm",n:"WM Phoenix Open",st:"completed"},
+  {id:"pebble",n:"AT&T Pebble Beach Pro-Am",st:"completed"},{id:"genesis",n:"Genesis Invitational",st:"completed"},
+  {id:"cognizant",n:"Cognizant Classic",st:"completed"},
+  {id:"arnold",n:"Arnold Palmer Invitational",st:"upcoming"},{id:"puerto",n:"Puerto Rico Open",st:"upcoming"},
+  {id:"players",n:"THE PLAYERS Championship",st:"upcoming"},{id:"valspar",n:"Valspar Championship",st:"upcoming"},
+  {id:"houston",n:"Texas Children's Houston Open",st:"upcoming"},{id:"valero",n:"Valero Texas Open",st:"upcoming"},
+  {id:"masters",n:"The Masters",st:"upcoming",mj:1},{id:"heritage",n:"RBC Heritage",st:"upcoming"},
+  {id:"zurich",n:"Zurich Classic",st:"upcoming"},{id:"byron",n:"CJ Cup Byron Nelson",st:"upcoming"},
+  {id:"schwab",n:"Charles Schwab Challenge",st:"upcoming"},{id:"memorial",n:"the Memorial Tournament",st:"upcoming"},
+  {id:"canadian",n:"RBC Canadian Open",st:"upcoming"},{id:"usopen",n:"U.S. Open",st:"upcoming",mj:1},
+  {id:"travelers",n:"Travelers Championship",st:"upcoming"},{id:"rocket",n:"Rocket Mortgage Classic",st:"upcoming"},
+  {id:"deere",n:"John Deere Classic",st:"upcoming"},{id:"scottish",n:"Genesis Scottish Open",st:"upcoming"},
+  {id:"open",n:"The Open Championship",st:"upcoming",mj:1},{id:"3m",n:"3M Open",st:"upcoming"},
+  {id:"wyndham",n:"Wyndham Championship",st:"upcoming"},{id:"stjude",n:"FedEx St. Jude Championship",st:"upcoming"},
+  {id:"bmw",n:"BMW Championship",st:"upcoming"},{id:"tour",n:"TOUR Championship",st:"upcoming"},
+  {id:"pga",n:"PGA Championship",st:"upcoming",mj:1}
 ];
-
 var AP={
   sony:{"Hudson":{g:"Nick Taylor",s:13},"Frank":{g:"Ben Griffin",s:19},"Jeff":{g:"Ben Griffin",s:19},"Sean":{g:"Harry Hall",s:6},"Kev Liska":{g:"Robert MacIntyre",s:4},"Briggs":{g:"Kieta Nakajima",s:65},"Denis":{g:"Chris Kirk",s:65},"Luke":{g:"Hideki Matsuyama",s:13},"Mark":{g:"Russell Henley",s:19},"John":{g:"Corey Conners",s:24},"Sandy":{g:"Jake Knapp",s:11},"Phil":{g:"Chris Kirk",s:65},"Kev Mahon":{g:"Chris Kirk",s:65},"Adam Dory":{g:"Ben Griffin",s:19},"Jim":{g:"Ben Griffin",s:19},"Bo":{g:"Steven Fisk",s:65},"Kenyon":{g:"Nick Taylor",s:13},"Cam":{g:"Brian Harman",s:61},"Nick":{g:"Ben Griffin",s:19},"Kole":{g:"Rico Hoey",s:50},"Kyle":{g:"Jake Knapp",s:11},"Dom":{g:"Ben Griffin",s:19}},
   amex:{"Hudson":{g:"Michael Thorbjornsen",s:65},"Frank":{g:"Alex Smalley",s:44},"Jeff":{g:"Harry Hall",s:24},"Sean":{g:"Si Woo Kim",s:6},"Kev Liska":{g:"Harry Hall",s:24},"Briggs":{g:"Si Woo Kim",s:6},"Denis":{g:"JT Poston",s:38},"Luke":{g:"Robert MacIntyre",s:38},"Mark":{g:"Patrick Cantlay",s:38},"John":{g:"Nick Taylor",s:13},"Sandy":{g:"Robert MacIntyre",s:38},"Phil":{g:"Ricky Fowler",s:38},"Kev Mahon":{g:"Harry Hall",s:24},"Adam Dory":{g:"Ryan Gerard",s:2},"Jim":{g:"Sam Burns",s:27},"Bo":{g:"Patrick Cantlay",s:13},"Kenyon":{g:"Sepp Straka",s:65},"Cam":{g:"Sam Burns",s:27},"Nick":{g:"JT Poston",s:38},"Kole":{g:"Patrick Cantlay",s:13},"Kyle":{g:"Wyndham Clark",s:13},"Dom":{g:"Sam Burns",s:27}},
@@ -91,161 +93,289 @@ var AP={
   genesis:{"Hudson":{g:"Jake Knapp",s:6},"Frank":{g:"Tommy Fleetwood",s:7},"Jeff":{g:"Si Woo Kim",s:34},"Sean":{g:"Tommy Fleetwood",s:7},"Kev Liska":{g:"Matt Fitzpatrick",s:24},"Briggs":{g:"Cameron Young",s:7},"Denis":{g:"Patrick Cantlay",s:37},"Luke":{g:"Tommy Fleetwood",s:7},"Mark":{g:"Tommy Fleetwood",s:7},"John":{g:"Patrick Cantlay",s:37},"Sandy":{g:"Tommy Fleetwood",s:7},"Phil":{g:"Matt Fitzpatrick",s:24},"Kev Mahon":{g:"Patrick Cantlay",s:37},"Adam Dory":{g:"Tommy Fleetwood",s:7},"Jim":{g:"Patrick Cantlay",s:37},"Bo":{g:"Cameron Young",s:7},"Kenyon":{g:"Tommy Fleetwood",s:7},"Cam":{g:"Patrick Cantlay",s:37},"Nick":{g:"Ludvig Aberg",s:20},"Kole":{g:"Hideki Matsuyama",s:28},"Kyle":{g:"Max Homa",s:37},"Dom":{g:"Sepp Straka",s:50}},
   cognizant:{"Hudson":{g:"Kieth Mitchell",s:6},"Frank":{g:"Ryan Gerard",s:23},"Jeff":{g:"Shane Lowry",s:2},"Sean":{g:"Ryan Gerard",s:23},"Kev Liska":{g:"Ryan Gerard",s:23},"Briggs":{g:"Ryan Gerard",s:23},"Denis":{g:"Nicolai Hojgaard",s:6},"Luke":{g:"Shane Lowry",s:2},"Mark":{g:"Nicolai Hojgaard",s:6},"John":{g:"Shane Lowry",s:6},"Sandy":{g:"Shane Lowry",s:2},"Phil":{g:"Ryan Gerard",s:23},"Kev Mahon":{g:"Ryan Gerard",s:23},"Adam Dory":{g:"Nicolai Hojgaard",s:6},"Jim":{g:"Rasmus Hojgaard",s:9},"Bo":{g:"Shane Lowry",s:2},"Kenyon":{g:"Michael Thorbjornsen",s:65},"Cam":{g:"Max McGreevy",s:40},"Nick":{g:"Ryan Gerard",s:23},"Kole":{g:"Shane Lowry",s:2},"Kyle":{g:"Shane Lowry",s:2},"Dom":{g:"Shane Lowry",s:2}}
 };
-
-var LB=MEMBERS.map(function(n){
-  var t=0,bd=[],ug=[];
-  TOURNAMENTS.filter(function(x){return x.status==="completed"}).forEach(function(x){
-    var p=AP[x.id]&&AP[x.id][n];
-    if(p){t+=p.s;bd.push({tn:x.name,tid:x.id,golfer:p.g,pts:p.s});ug.push(p.g);}
-  });
-  return{name:n,total:t,bd:bd,ug:ug};
-}).sort(function(a,b){return a.total-b.total;});
-
+var LB=ME.map(function(n){var t=0,bd=[],ug=[];TN.filter(function(x){return x.st==="completed"}).forEach(function(x){var p=AP[x.id]&&AP[x.id][n];if(p){t+=p.s;bd.push({tn:x.n,tid:x.id,g:p.g,p:p.s});ug.push(p.g);}});return{nm:n,t:t,bd:bd,ug:ug};}).sort(function(a,b){return a.t-b.t;});
 function hc(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
 function mc(n){var c=["#2d6a4f","#9b2226","#005f73","#bb3e03","#3a0ca3","#7b2cbf","#006d77","#9c6644","#264653","#e76f51","#606c38","#bc4749","#0077b6","#d4a373","#6a040f","#023e8a","#7f5539","#4a4e69","#386641","#d62828","#1d3557","#e63946"];return c[hc(n)%c.length];}
 function ord(n){var s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
-function ta(ts){var d=Date.now()-ts,m=Math.floor(d/60000),hr=Math.floor(d/3600000);if(m<1)return"just now";if(m<60)return m+"m ago";if(hr<24)return hr+"h ago";return Math.floor(hr/24)+"d ago";}
-
-var R=React,h=R.createElement;
-var useState=R.useState,useEffect=R.useEffect,useRef=R.useRef,useMemo=R.useMemo,useCallback=R.useCallback;
+function ta(ts){var d=Date.now()-ts,m=Math.floor(d/60000),hr=Math.floor(d/3600000);if(m<1)return"now";if(m<60)return m+"m";if(hr<24)return hr+"h";return Math.floor(hr/24)+"d";}
+var ADMIN="Hudson";
+var h=React.createElement,us=React.useState,ue=React.useEffect,ur=React.useRef,um=React.useMemo,uc=React.useCallback;
 
 function App(){
-  var _tab=useState("leaderboard"),tab=_tab[0],setTab=_tab[1];
-  var _user=useState(null),user=_user[0],setUser=_user[1];
-  var _login=useState(true),showLogin=_login[0],setShowLogin=_login[1];
-  var _sel=useState(null),selMember=_sel[0],setSelMember=_sel[1];
-  var _exp=useState(null),expT=_exp[0],setExpT=_exp[1];
-  var _msgs=useState([]),msgs=_msgs[0],setMsgs=_msgs[1];
-  var _ci=useState(""),ci=_ci[0],setCi=_ci[1];
-  var _wp=useState({}),wp=_wp[0],setWp=_wp[1];
-  var _pg=useState(""),pg=_pg[0],setPg=_pg[1];
-  var _pt=useState(""),pt=_pt[0],setPt=_pt[1];
-  var _pay=useState({}),pay=_pay[0],setPay=_pay[1];
-  var _spm=useState(false),spm=_spm[0],setSpm=_spm[1];
-  var chatEnd=useRef(null);
-  var compT=TOURNAMENTS.filter(function(t){return t.status==="completed";});
-  var upT=TOURNAMENTS.filter(function(t){return t.status==="upcoming";});
-  var leader=LB[0],last=LB[LB.length-1];
+  // Auth state
+  var _u=us(null),user=_u[0],setUser=_u[1];
+  var _screen=us("login"),screen=_screen[0],setScreen=_screen[1]; // login, register, app
+  var _selName=us(""),selName=_selName[0],setSelName=_selName[1];
+  var _pw=us(""),pw=_pw[0],setPw=_pw[1];
+  var _pw2=us(""),pw2=_pw2[0],setPw2=_pw2[1];
+  var _err=us(""),err=_err[0],setErr=_err[1];
+  var _loading=us(false),loading=_loading[0],setLoading=_loading[1];
 
-  useEffect(function(){
+  // App state
+  var _tab=us("leaderboard"),tab=_tab[0],setTab=_tab[1];
+  var _sel=us(null),selM=_sel[0],setSelM=_sel[1];
+  var _exp=us(null),expT=_exp[0],setExpT=_exp[1];
+  var _msgs=us([]),msgs=_msgs[0],setMsgs=_msgs[1];
+  var _ci=us(""),ci=_ci[0],setCi=_ci[1];
+  var _wp=us({}),wp=_wp[0],setWp=_wp[1];
+  var _pay=us({}),pay=_pay[0],setPay=_pay[1];
+  var _dl=us(null),dl=_dl[0],setDl=_dl[1];
+  var _spm=us(false),spm=_spm[0],setSpm=_spm[1];
+  var _pg=us(""),pg=_pg[0],setPg=_pg[1];
+  var _pt=us(""),pt=_pt[0],setPt=_pt[1];
+
+  // Admin state
+  var _adT=us(""),adT=_adT[0],setAdT=_adT[1];
+  var _adM=us(""),adM=_adM[0],setAdM=_adM[1];
+  var _adS=us(""),adS=_adS[0],setAdS=_adS[1];
+  var _adG=us(""),adG=_adG[0],setAdG=_adG[1];
+  var _dlText=us(""),dlText=_dlText[0],setDlText=_dlText[1];
+  var _dlTime=us(""),dlTime=_dlTime[0],setDlTime=_dlTime[1];
+  var _adEpM=us(""),adEpM=_adEpM[0],setAdEpM=_adEpM[1];
+  var _adEpT=us(""),adEpT=_adEpT[0],setAdEpT=_adEpT[1];
+
+  var chatEnd=ur(null);
+  var cT=TN.filter(function(t){return t.st==="completed"});
+  var uT=TN.filter(function(t){return t.st==="upcoming"});
+  var ld=LB[0],last=LB[LB.length-1];
+  var isAdmin=user===ADMIN;
+
+  // Check saved session
+  ue(function(){
+    try{var s=sessionStorage.getItem("gp-user");if(s){setUser(s);setScreen("app");}}catch(e){}
+  },[]);
+
+  // Firebase listeners
+  ue(function(){
+    if(screen!=="app")return;
     var u1=db.collection("chat").orderBy("timestamp","asc").limit(200).onSnapshot(function(s){var m=[];s.forEach(function(d){m.push(Object.assign({id:d.id},d.data()));});setMsgs(m);});
     var u2=db.collection("weeklyPicks").onSnapshot(function(s){var p={};s.forEach(function(d){p[d.id]=d.data();});setWp(p);});
     var u3=db.collection("payments").doc("status").onSnapshot(function(d){if(d.exists)setPay(d.data());});
-    return function(){u1();u2();u3();};
-  },[]);
+    var u4=db.collection("settings").doc("deadline").onSnapshot(function(d){if(d.exists)setDl(d.data());});
+    return function(){u1();u2();u3();u4();};
+  },[screen]);
 
-  useEffect(function(){if(chatEnd.current)chatEnd.current.scrollIntoView({behavior:"smooth"});},[msgs]);
+  ue(function(){if(chatEnd.current)chatEnd.current.scrollIntoView({behavior:"smooth"});},[msgs]);
 
-  function sendChat(){
-    if(!ci.trim()||!user)return;
-    db.collection("chat").add({user:user,text:ci.trim(),timestamp:Date.now(),color:mc(user)});
-    setCi("");
+  // Auth functions
+  function doLogin(){
+    if(!selName||!pw){setErr("Select your name and enter password");return;}
+    setLoading(true);setErr("");
+    db.collection("users").doc(selName).get().then(function(doc){
+      setLoading(false);
+      if(!doc.exists){setErr("No account found. Click 'Create Account' to register.");return;}
+      if(doc.data().pw!==pw){setErr("Incorrect password");return;}
+      setUser(selName);setScreen("app");setPw("");
+      try{sessionStorage.setItem("gp-user",selName);}catch(e){}
+    }).catch(function(e){setLoading(false);setErr("Error: "+e.message);});
   }
 
+  function doRegister(){
+    if(!selName||!pw){setErr("Select your name and create a password");return;}
+    if(pw.length<4){setErr("Password must be at least 4 characters");return;}
+    if(pw!==pw2){setErr("Passwords don't match");return;}
+    setLoading(true);setErr("");
+    db.collection("users").doc(selName).get().then(function(doc){
+      if(doc.exists){setLoading(false);setErr("Account already exists. Go back and log in.");return;}
+      return db.collection("users").doc(selName).set({pw:pw,created:Date.now()});
+    }).then(function(){
+      setLoading(false);setUser(selName);setScreen("app");setPw("");setPw2("");
+      try{sessionStorage.setItem("gp-user",selName);}catch(e){}
+    }).catch(function(e){setLoading(false);setErr("Error: "+e.message);});
+  }
+
+  function logout(){setUser(null);setScreen("login");setTab("leaderboard");try{sessionStorage.removeItem("gp-user");}catch(e){}}
+
+  // Chat
+  function sendChat(){
+    if(!ci.trim()||!user)return;
+    db.collection("chat").add({user:user,text:ci.trim(),timestamp:Date.now()});setCi("");
+  }
+
+  // Picks
   function submitPick(){
     if(!pg.trim()||!pt||!user)return;
     db.collection("weeklyPicks").doc(pt+"_"+user).set({member:user,tournament:pt,golfer:pg.trim(),timestamp:Date.now()});
     setPg("");setSpm(false);
   }
 
-  var usedG=useMemo(function(){
-    var m=LB.find(function(x){return x.name===user;});
+  var usedG=um(function(){
+    var m=LB.find(function(x){return x.nm===user});
     var u=m?m.ug.slice():[];
     Object.values(wp).forEach(function(p){if(p.member===user&&u.indexOf(p.golfer)<0)u.push(p.golfer);});
     return u;
   },[user,wp]);
 
-  var stats=useMemo(function(){
+  var stats=um(function(){
     var gp={},gs={};
-    compT.forEach(function(t){Object.entries(AP[t.id]||{}).forEach(function(e){
-      gp[e[1].g]=(gp[e[1].g]||0)+1;
-      if(!gs[e[1].g])gs[e[1].g]=[];gs[e[1].g].push(e[1].s);
-    });});
-    var mp=Object.entries(gp).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
-    var ba=Object.entries(gs).filter(function(e){return e[1].length>=2;}).map(function(e){return{name:e[0],avg:e[1].reduce(function(a,b){return a+b;},0)/e[1].length,count:e[1].length};}).sort(function(a,b){return a.avg-b.avg;}).slice(0,8);
-    return{mp:mp,ba:ba};
+    cT.forEach(function(t){Object.entries(AP[t.id]||{}).forEach(function(e){gp[e[1].g]=(gp[e[1].g]||0)+1;if(!gs[e[1].g])gs[e[1].g]=[];gs[e[1].g].push(e[1].s);});});
+    return{mp:Object.entries(gp).sort(function(a,b){return b[1]-a[1]}).slice(0,10),ba:Object.entries(gs).filter(function(e){return e[1].length>=2}).map(function(e){return{nm:e[0],avg:e[1].reduce(function(a,b){return a+b},0)/e[1].length,ct:e[1].length}}).sort(function(a,b){return a.avg-b.avg}).slice(0,8)};
   },[]);
 
-  // LOGIN
-  if(showLogin&&!user){
+  // Admin functions
+  function adminRecordResult(){
+    if(!adT||!adM||!adS)return;
+    var score=parseInt(adS);if(isNaN(score)||score<1)return;
+    db.collection("results").doc(adT+"_"+adM).set({tournament:adT,member:adM,golfer:adG||"Unknown",score:score,timestamp:Date.now()});
+    setAdS("");setAdG("");alert("Result recorded: "+adM+" scored "+score+" at "+TN.find(function(t){return t.id===adT}).n);
+  }
+
+  function adminSetDeadline(){
+    if(!dlText.trim())return;
+    db.collection("settings").doc("deadline").set({text:dlText.trim(),time:dlTime.trim(),updated:Date.now()});
+    alert("Deadline set!");
+  }
+
+  function adminClearDeadline(){
+    db.collection("settings").doc("deadline").delete();setDl(null);
+  }
+
+  function adminDeletePick(){
+    if(!adEpT||!adEpM)return;
+    var key=adEpT+"_"+adEpM;
+    db.collection("weeklyPicks").doc(key).delete().then(function(){
+      alert("Pick deleted for "+adEpM);setAdEpM("");
+    }).catch(function(){alert("No pick found to delete");});
+  }
+
+  function adminEditPick(){
+    if(!adEpT||!adEpM||!adG)return;
+    var key=adEpT+"_"+adEpM;
+    db.collection("weeklyPicks").doc(key).set({member:adEpM,tournament:adEpT,golfer:adG.trim(),timestamp:Date.now()},{merge:true});
+    alert("Pick updated for "+adEpM+" → "+adG);setAdG("");
+  }
+
+  // ═══ LOGIN SCREEN ═══
+  if(screen==="login"){
     return h("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#1b4332,#2d6a4f 40%,#40916c)",padding:"20px"}},
-      h("div",{style:{background:"white",borderRadius:"16px",padding:"28px",maxWidth:"380px",width:"100%",boxShadow:"0 25px 50px rgba(0,0,0,0.3)"}},
+      h("div",{style:{background:"white",borderRadius:"16px",padding:"28px",maxWidth:"380px",width:"100%",boxShadow:"0 25px 50px rgba(0,0,0,.3)"}},
         h("div",{style:{textAlign:"center",marginBottom:"20px"}},
           h("div",{style:{fontSize:"36px",marginBottom:"6px"}},"⛳"),
-          h("h1",{className:"serif",style:{fontSize:"22px",fontWeight:"900"}},"Hud's Golf Pool"),
-          h("p",{style:{color:"#78716c",fontSize:"13px",marginTop:"4px"}},"Select your name to continue")
+          h("h1",{className:"sf",style:{fontSize:"22px",fontWeight:"900"}},"Hud's Golf Pool"),
+          h("p",{style:{color:"#78716c",fontSize:"13px",marginTop:"4px"}},"Sign in to continue")
         ),
-        h("div",{style:{display:"flex",flexDirection:"column",gap:"4px",maxHeight:"420px",overflowY:"auto"},className:"scrollbar-hide"},
-          MEMBERS.slice().sort().map(function(n){
-            return h("button",{key:n,onClick:function(){setUser(n);setShowLogin(false);},
-              style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px",borderRadius:"8px",border:"1px solid #e7e5e4",background:"white",textAlign:"left",fontSize:"14px",fontWeight:"500",color:"#292524",cursor:"pointer",transition:"background 0.15s"},
-              onMouseOver:function(e){e.currentTarget.style.background="#f5f5f4";},onMouseOut:function(e){e.currentTarget.style.background="white";}},
-              h("div",{style:{width:"10px",height:"10px",borderRadius:"50%",background:mc(n),flexShrink:0}}),n
-            );
-          })
+        h("div",{style:{display:"flex",flexDirection:"column",gap:"12px"}},
+          h("div",null,
+            h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Your Name"),
+            h("select",{className:"if",value:selName,onChange:function(e){setSelName(e.target.value);setErr("");}},
+              h("option",{value:""},"Select your name..."),
+              ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n);})
+            )
+          ),
+          h("div",null,
+            h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Password"),
+            h("input",{className:"if",type:"password",placeholder:"Enter password",value:pw,onChange:function(e){setPw(e.target.value);setErr("");},onKeyDown:function(e){if(e.key==="Enter")doLogin();}})
+          ),
+          h("button",{className:"bp",onClick:doLogin,disabled:loading,style:{opacity:loading?.6:1}},loading?"Signing in...":"Sign In"),
+          err&&h("div",{className:"err"},err),
+          h("div",{style:{textAlign:"center",marginTop:"4px"}},
+            h("button",{onClick:function(){setScreen("register");setErr("");setPw("");},style:{background:"none",border:"none",color:"#2d6a4f",fontSize:"13px",fontWeight:"600",textDecoration:"underline"}},"First time? Create Account")
+          )
         )
       )
     );
   }
 
-  // MAIN
+  // ═══ REGISTER SCREEN ═══
+  if(screen==="register"){
+    return h("div",{style:{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#1b4332,#2d6a4f 40%,#40916c)",padding:"20px"}},
+      h("div",{style:{background:"white",borderRadius:"16px",padding:"28px",maxWidth:"380px",width:"100%",boxShadow:"0 25px 50px rgba(0,0,0,.3)"}},
+        h("div",{style:{textAlign:"center",marginBottom:"20px"}},
+          h("div",{style:{fontSize:"36px",marginBottom:"6px"}},"⛳"),
+          h("h1",{className:"sf",style:{fontSize:"22px",fontWeight:"900"}},"Create Account"),
+          h("p",{style:{color:"#78716c",fontSize:"13px",marginTop:"4px"}},"Set a password for your account")
+        ),
+        h("div",{style:{display:"flex",flexDirection:"column",gap:"12px"}},
+          h("div",null,
+            h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Your Name"),
+            h("select",{className:"if",value:selName,onChange:function(e){setSelName(e.target.value);setErr("");}},
+              h("option",{value:""},"Select your name..."),
+              ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n);})
+            )
+          ),
+          h("div",null,
+            h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Create Password"),
+            h("input",{className:"if",type:"password",placeholder:"Min 4 characters",value:pw,onChange:function(e){setPw(e.target.value);setErr("");}})
+          ),
+          h("div",null,
+            h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Confirm Password"),
+            h("input",{className:"if",type:"password",placeholder:"Re-enter password",value:pw2,onChange:function(e){setPw2(e.target.value);setErr("");},onKeyDown:function(e){if(e.key==="Enter")doRegister();}})
+          ),
+          h("button",{className:"bp",onClick:doRegister,disabled:loading,style:{opacity:loading?.6:1}},loading?"Creating...":"Create Account"),
+          err&&h("div",{className:"err"},err),
+          h("div",{style:{textAlign:"center",marginTop:"4px"}},
+            h("button",{onClick:function(){setScreen("login");setErr("");setPw("");setPw2("");},style:{background:"none",border:"none",color:"#2d6a4f",fontSize:"13px",fontWeight:"600",textDecoration:"underline"}},"Back to Sign In")
+          )
+        )
+      )
+    );
+  }
+
+  // ═══ MAIN APP ═══
+  var tabList=["leaderboard","picks","schedule","chat","payments","stats"];
+  if(isAdmin)tabList.push("admin");
+  var tabLabels={leaderboard:"Board",picks:"Picks",schedule:"Events",chat:"Chat 💬",payments:"Pay 💰",stats:"Stats",admin:"Admin ⚙️"};
+
   return h("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#f8f7f4,#eae8e1)"}},
     // Header
     h("header",{style:{position:"relative",overflow:"hidden",background:"linear-gradient(135deg,#1b4332,#2d6a4f 40%,#40916c)"}},
-      h("div",{style:{position:"absolute",inset:0,opacity:0.07,backgroundImage:"radial-gradient(circle at 20% 50%,white 1px,transparent 1px),radial-gradient(circle at 80% 20%,white 1px,transparent 1px)",backgroundSize:"60px 60px,40px 40px"}}),
-      h("div",{style:{position:"relative",maxWidth:"720px",margin:"0 auto",padding:"18px 16px"}},
+      h("div",{style:{position:"absolute",inset:0,opacity:.07,backgroundImage:"radial-gradient(circle at 20% 50%,white 1px,transparent 1px),radial-gradient(circle at 80% 20%,white 1px,transparent 1px)",backgroundSize:"60px 60px,40px 40px"}}),
+      h("div",{style:{position:"relative",maxWidth:"720px",margin:"0 auto",padding:"16px"}},
         h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
           h("div"),
           h("div",{style:{textAlign:"center",flex:1}},
-            h("div",{style:{color:"rgba(167,243,208,0.7)",fontSize:"10px",fontWeight:"600",letterSpacing:"3px",textTransform:"uppercase"}},"Hud's Golf Pool"),
-            h("h1",{className:"serif",style:{fontSize:"24px",fontWeight:"900",color:"white",marginTop:"2px"}},"2026 PGA Tour Pool")
+            h("div",{style:{color:"rgba(167,243,208,.7)",fontSize:"10px",fontWeight:"600",letterSpacing:"3px",textTransform:"uppercase"}},"Hud's Golf Pool"),
+            h("h1",{className:"sf",style:{fontSize:"22px",fontWeight:"900",color:"white",marginTop:"2px"}},"2026 PGA Tour Pool")
           ),
-          h("button",{onClick:function(){setUser(null);setShowLogin(true);},style:{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"8px",padding:"5px 10px",color:"white",fontSize:"11px",fontWeight:"500"}},"Switch")
+          h("button",{onClick:logout,style:{background:"rgba(255,255,255,.15)",border:"none",borderRadius:"8px",padding:"5px 10px",color:"white",fontSize:"11px"}},"Logout")
         ),
-        h("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px",marginTop:"8px",color:"rgba(209,250,229,0.8)",fontSize:"12px",flexWrap:"wrap"}},
+        h("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:"10px",marginTop:"8px",color:"rgba(209,250,229,.8)",fontSize:"12px",flexWrap:"wrap"}},
           h("span",null,"Hi, ",h("strong",{style:{color:"#fcd34d"}},user)),
-          h("span",{style:{width:"3px",height:"3px",borderRadius:"50%",background:"rgba(167,243,208,0.5)"}}),
-          h("span",null,compT.length+"/"+TOURNAMENTS.length+" events"),
-          h("span",{style:{width:"3px",height:"3px",borderRadius:"50%",background:"rgba(167,243,208,0.5)"}}),
-          h("span",null,"Leader: "+leader.name+" ("+leader.total+")")
+          h("span",{style:{width:"3px",height:"3px",borderRadius:"50%",background:"rgba(167,243,208,.5)"}}),
+          h("span",null,cT.length+"/"+TN.length+" events"),
+          h("span",{style:{width:"3px",height:"3px",borderRadius:"50%",background:"rgba(167,243,208,.5)"}}),
+          h("span",null,"Leader: "+ld.nm+" ("+ld.t+")")
         )
       )
     ),
 
     // Tabs
     h("div",{style:{maxWidth:"720px",margin:"-10px auto 0",padding:"0 16px",position:"relative",zIndex:10}},
-      h("div",{style:{background:"white",borderRadius:"12px",boxShadow:"0 1px 2px rgba(0,0,0,0.05)",border:"1px solid #e7e5e4",padding:"4px",display:"flex",gap:"2px",overflowX:"auto"},className:"scrollbar-hide"},
-        ["leaderboard","picks","schedule","chat","payments","stats"].map(function(t){
-          var label=t==="chat"?"Chat 💬":t==="payments"?"Pay 💰":t.charAt(0).toUpperCase()+t.slice(1);
-          return h("button",{key:t,className:"tab-btn"+(tab===t?" active":""),onClick:function(){setTab(t);}},label);
-        })
+      h("div",{style:{background:"white",borderRadius:"12px",boxShadow:"0 1px 2px rgba(0,0,0,.05)",border:"1px solid #e7e5e4",padding:"4px",display:"flex",gap:"2px",overflowX:"auto"},className:"sh"},
+        tabList.map(function(t){return h("button",{key:t,className:"tb"+(tab===t?" ac":""),onClick:function(){setTab(t)}},tabLabels[t]);})
       )
     ),
 
-    // Content
     h("main",{style:{maxWidth:"720px",margin:"0 auto",padding:"16px"}},
 
+      // Deadline banner
+      dl&&dl.text&&tab!=="admin"&&h("div",{className:"dl"},
+        h("span",{style:{fontSize:"18px"}},"⏰"),
+        h("div",null,
+          h("div",{style:{fontWeight:"600",fontSize:"13px",color:"#92400e"}},dl.text),
+          dl.time&&h("div",{style:{fontSize:"11px",color:"#b45309",marginTop:"2px"}},dl.time)
+        )
+      ),
+
       // LEADERBOARD
-      tab==="leaderboard"&&h("div",{className:"fade-up"},
-        h("div",{className:"card"},
-          h("div",{className:"card-header"},h("h2",{className:"serif",style:{fontWeight:"700",fontSize:"17px"}},"Standings"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},"Low score wins • "+compT.length+" events")),
+      tab==="leaderboard"&&h("div",{className:"fu"},
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700",fontSize:"17px"}},"Standings"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},"Low score wins")),
           h("div",null,LB.map(function(m,i){
-            var avg=(m.total/Math.max(m.bd.length,1)).toFixed(1);
-            var gap=i===0?null:m.total-leader.total;
-            var isPaid=pay[m.name];
-            return h("div",{key:m.name,className:"golf-stripe hover-row",onClick:function(){setSelMember(m);},style:{display:"flex",alignItems:"center",gap:"10px",padding:"11px 14px",cursor:"pointer",transition:"background 0.15s"}},
-              h("div",{className:"pos-badge"+(i<3?" pos-"+(i+1):""),style:i>2?{background:"#f5f5f4",color:"#78716c"}:undefined},i+1),
+            var avg=(m.t/Math.max(m.bd.length,1)).toFixed(1);var gap=i===0?null:m.t-ld.t;
+            return h("div",{key:m.nm,className:"gs hr",onClick:function(){setSelM(m)},style:{display:"flex",alignItems:"center",gap:"10px",padding:"11px 14px",cursor:"pointer",transition:"background .15s"}},
+              h("div",{className:"pb"+(i<3?" p"+(i+1):""),style:i>2?{background:"#f5f5f4",color:"#78716c"}:undefined},i+1),
               h("div",{style:{flex:1,minWidth:0}},
                 h("div",{style:{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}},
-                  h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(m.name)}}),
-                  h("span",{style:{fontWeight:"600",fontSize:"14px"}},m.name),
+                  h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(m.nm)}}),
+                  h("span",{style:{fontWeight:"600",fontSize:"14px"}},m.nm),
                   gap!=null&&h("span",{style:{fontSize:"11px",color:"#a8a29e"}},"+"+gap),
-                  h("span",{className:"badge "+(isPaid?"badge-paid":"badge-unpaid")},isPaid?"Paid":"Unpaid")
+                  h("span",{className:"bg "+(pay[m.nm]?"bg-pd":"bg-up")},pay[m.nm]?"Paid":"Unpaid")
                 ),
-                h("div",{style:{fontSize:"11px",color:"#a8a29e",marginTop:"2px"}},"Avg: "+avg)
+                h("div",{style:{fontSize:"11px",color:"#a8a29e",marginTop:"2px"}},"Avg: "+avg+" • "+m.bd.length+" events")
               ),
               h("div",{style:{textAlign:"right"}},
-                h("div",{className:"serif",style:{fontWeight:"700",fontSize:"19px"}},m.total),
+                h("div",{className:"sf",style:{fontWeight:"700",fontSize:"19px"}},m.t),
                 h("div",{style:{fontSize:"11px",color:"#a8a29e"}},"pts")
               )
             );
@@ -254,49 +384,37 @@ function App(){
       ),
 
       // PICKS
-      tab==="picks"&&h("div",{className:"fade-up",style:{display:"flex",flexDirection:"column",gap:"14px"}},
-        h("button",{className:"btn-primary",style:{width:"100%"},onClick:function(){setSpm(true);}},"📋 Submit My Pick"),
-        // Firebase picks
-        (function(){
-          var arr=[];
-          upT.forEach(function(t){
-            var tp=Object.values(wp).filter(function(p){return p.tournament===t.id;});
-            if(tp.length>0)arr.push(h("div",{key:t.id,className:"card"},
-              h("div",{className:"card-header"},h("span",{style:{fontWeight:"600",fontSize:"14px"}},t.name," "),h("span",{className:"badge badge-active"},"Upcoming")),
-              h("div",{style:{padding:"10px 14px",display:"flex",flexWrap:"wrap",gap:"6px"}},
-                tp.map(function(p,i){return h("div",{key:i,style:{display:"flex",alignItems:"center",gap:"6px",background:"#f5f5f4",borderRadius:"6px",padding:"4px 10px",fontSize:"12px"}},
-                  h("div",{style:{width:"6px",height:"6px",borderRadius:"50%",background:mc(p.member)}}),
-                  h("span",{style:{fontWeight:"500"}},p.member),
-                  h("span",{style:{color:"#a8a29e"}},"→"),
-                  h("span",{className:"badge badge-pick"},p.golfer)
-                );})
-              )
-            ));
-          });
-          return arr;
-        })(),
-        compT.map(function(t){
-          var isExp=expT===t.id;
-          var tp=MEMBERS.map(function(n){var p=AP[t.id]&&AP[t.id][n];return p?{name:n,golfer:p.g,score:p.s}:null;}).filter(Boolean).sort(function(a,b){return a.score-b.score;});
-          return h("div",{key:t.id,className:"card"},
-            h("div",{className:"card-header hover-row",onClick:function(){setExpT(isExp?null:t.id);},style:{cursor:"pointer"}},
-              h("div",null,
-                h("span",{className:"serif",style:{fontWeight:"700",fontSize:"14px"}},t.name),
-                h("div",{style:{display:"flex",gap:"6px",marginTop:"4px"}},
-                  h("span",{className:"badge badge-completed"},"Complete"),
-                  t.isMajor&&h("span",{className:"badge badge-major"},"Major"),
-                  tp[0]&&h("span",{style:{fontSize:"11px",color:"#a8a29e"}},"Best: "+tp[0].name+" ("+tp[0].score+")")
-                )
-              ),
-              h("div",{style:{color:"#a8a29e",fontSize:"16px"}},isExp?"−":"+")
+      tab==="picks"&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
+        h("button",{className:"bp",onClick:function(){setSpm(true)}},"📋 Submit My Pick"),
+        (function(){var arr=[];uT.forEach(function(t){
+          var tp=Object.values(wp).filter(function(p){return p.tournament===t.id});
+          if(tp.length>0)arr.push(h("div",{key:t.id,className:"cd"},
+            h("div",{className:"ch"},h("span",{style:{fontWeight:"600",fontSize:"14px"}},t.n),h("span",{className:"bg bg-a"},"Upcoming")),
+            h("div",{style:{padding:"10px 14px",display:"flex",flexWrap:"wrap",gap:"6px"}},
+              tp.map(function(p,i){return h("div",{key:i,style:{display:"flex",alignItems:"center",gap:"6px",background:"#f5f5f4",borderRadius:"6px",padding:"4px 10px",fontSize:"12px"}},
+                h("div",{style:{width:"6px",height:"6px",borderRadius:"50%",background:mc(p.member)}}),
+                h("span",{style:{fontWeight:"500"}},p.member),h("span",{style:{color:"#a8a29e"}},"→"),
+                h("span",{className:"bg bg-pk"},p.golfer)
+              )})
+            )
+          ));
+        });return arr;})(),
+        cT.map(function(t){
+          var isE=expT===t.id;
+          var tp=ME.map(function(n){var p=AP[t.id]&&AP[t.id][n];return p?{nm:n,g:p.g,s:p.s}:null}).filter(Boolean).sort(function(a,b){return a.s-b.s});
+          return h("div",{key:t.id,className:"cd"},
+            h("div",{className:"ch hr",onClick:function(){setExpT(isE?null:t.id)},style:{cursor:"pointer"}},
+              h("div",null,h("span",{className:"sf",style:{fontWeight:"700",fontSize:"14px"}},t.n),
+                h("div",{style:{display:"flex",gap:"6px",marginTop:"4px"}},h("span",{className:"bg bg-c"},"Complete"),t.mj&&h("span",{className:"bg bg-m"},"Major"))
+              ),h("div",{style:{color:"#a8a29e",fontSize:"16px"}},isE?"−":"+")
             ),
-            isExp&&h("div",null,tp.map(function(p,i){
-              return h("div",{key:p.name,className:"golf-stripe",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
+            isE&&h("div",null,tp.map(function(p,i){
+              return h("div",{key:p.nm,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
                 h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#a8a29e",width:"18px",textAlign:"right"}},i+1),
-                h("div",{style:{width:"7px",height:"7px",borderRadius:"50%",flexShrink:0,background:mc(p.name)}}),
-                h("span",{style:{fontWeight:"500",fontSize:"13px",flex:1}},p.name),
-                h("span",{className:"badge badge-pick"},p.golfer),
-                h("div",{style:{fontSize:"13px",fontWeight:"700",minWidth:"30px",textAlign:"right",color:p.score<=10?"#047857":p.score>=65?"#dc2626":"#44403c"}},p.score)
+                h("div",{style:{width:"7px",height:"7px",borderRadius:"50%",flexShrink:0,background:mc(p.nm)}}),
+                h("span",{style:{fontWeight:"500",fontSize:"13px",flex:1}},p.nm),
+                h("span",{className:"bg bg-pk"},p.g),
+                h("div",{style:{fontSize:"13px",fontWeight:"700",minWidth:"30px",textAlign:"right",color:p.s<=10?"#047857":p.s>=65?"#dc2626":"#44403c"}},p.s)
               );
             }))
           );
@@ -304,196 +422,194 @@ function App(){
       ),
 
       // SCHEDULE
-      tab==="schedule"&&h("div",{className:"fade-up"},
-        h("div",{className:"card"},
-          h("div",{className:"card-header"},h("h2",{className:"serif",style:{fontWeight:"700"}},"Schedule"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},TOURNAMENTS.length+" events")),
-          h("div",{style:{maxHeight:"70vh",overflowY:"auto"},className:"scrollbar-hide"},
-            TOURNAMENTS.map(function(t,i){
-              return h("div",{key:t.id,className:"golf-stripe",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
-                h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#d6d3d1",width:"18px",textAlign:"right"}},i+1),
-                h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:t.status==="completed"?"#10b981":"#d6d3d1"}}),
-                h("span",{style:{fontSize:"13px",fontWeight:"500",flex:1,color:t.status==="completed"?"#292524":"#78716c"}},t.name),
-                t.isMajor&&h("span",{className:"badge badge-major"},"Major"),
-                t.status==="completed"&&h("span",{className:"badge badge-active"},"Done")
-              );
-            })
-          )
+      tab==="schedule"&&h("div",{className:"fu"},
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Schedule"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},TN.length+" events")),
+          h("div",{style:{maxHeight:"70vh",overflowY:"auto"},className:"sh"},TN.map(function(t,i){
+            return h("div",{key:t.id,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
+              h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#d6d3d1",width:"18px",textAlign:"right"}},i+1),
+              h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:t.st==="completed"?"#10b981":"#d6d3d1"}}),
+              h("span",{style:{fontSize:"13px",fontWeight:"500",flex:1,color:t.st==="completed"?"#292524":"#78716c"}},t.n),
+              t.mj&&h("span",{className:"bg bg-m"},"Major"),t.st==="completed"&&h("span",{className:"bg bg-a"},"Done")
+            );
+          }))
         )
       ),
 
       // CHAT
-      tab==="chat"&&h("div",{className:"fade-up"},
-        h("div",{className:"card",style:{height:"520px",display:"flex",flexDirection:"column"}},
-          h("div",{className:"card-header"},h("h2",{className:"serif",style:{fontWeight:"700"}},"Pool Chat 💬"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},msgs.length+" msgs")),
-          h("div",{style:{flex:1,overflowY:"auto",padding:"12px 14px",display:"flex",flexDirection:"column",gap:"8px"},className:"scrollbar-hide"},
+      tab==="chat"&&h("div",{className:"fu"},
+        h("div",{className:"cd",style:{height:"520px",display:"flex",flexDirection:"column"}},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Pool Chat 💬"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},msgs.length+" msgs")),
+          h("div",{style:{flex:1,overflowY:"auto",padding:"12px 14px",display:"flex",flexDirection:"column",gap:"8px"},className:"sh"},
             msgs.length===0&&h("div",{style:{textAlign:"center",color:"#a8a29e",fontSize:"14px",marginTop:"60px"}},"No messages yet. Start the trash talk! 🏌️"),
-            msgs.map(function(m){
-              var isMe=m.user===user;
-              return h("div",{key:m.id,style:{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",gap:"2px"}},
-                h("div",{style:{fontSize:"10px",color:"#a8a29e",fontWeight:"500",padding:"0 4px"}},isMe?"You":m.user," • ",ta(m.timestamp)),
-                h("div",{className:"chat-bubble "+(isMe?"chat-self":"chat-other")},m.text)
+            msgs.map(function(m){var me=m.user===user;
+              return h("div",{key:m.id,style:{display:"flex",flexDirection:"column",alignItems:me?"flex-end":"flex-start",gap:"2px"}},
+                h("div",{style:{fontSize:"10px",color:"#a8a29e",fontWeight:"500",padding:"0 4px"}},me?"You":m.user," • ",ta(m.timestamp)),
+                h("div",{className:"cb "+(me?"cs":"co")},m.text)
               );
             }),
             h("div",{ref:chatEnd})
           ),
           h("div",{style:{padding:"10px 14px",borderTop:"1px solid #e7e5e4",display:"flex",gap:"8px"}},
-            h("input",{className:"input-field",style:{flex:1},placeholder:"Type a message...",value:ci,onChange:function(e){setCi(e.target.value);},onKeyDown:function(e){if(e.key==="Enter")sendChat();}}),
-            h("button",{className:"btn-primary",style:{padding:"10px 14px"},onClick:sendChat},"Send")
+            h("input",{className:"if",style:{flex:1},placeholder:"Type a message...",value:ci,onChange:function(e){setCi(e.target.value)},onKeyDown:function(e){if(e.key==="Enter")sendChat()}}),
+            h("button",{className:"bp",style:{width:"auto",padding:"10px 14px"},onClick:sendChat},"Send")
           )
         )
       ),
 
       // PAYMENTS
-      tab==="payments"&&h("div",{className:"fade-up"},
-        h("div",{className:"card"},
-          h("div",{className:"card-header"},
-            h("h2",{className:"serif",style:{fontWeight:"700"}},"Payments 💰"),
-            h("div",{style:{fontSize:"11px",color:"#a8a29e"}},MEMBERS.filter(function(m){return pay[m];}).length+"/"+MEMBERS.length+" paid")
-          ),
-          h("div",null,MEMBERS.slice().sort().map(function(n){
-            var pd=pay[n];
-            return h("div",{key:n,className:"golf-stripe",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
+      tab==="payments"&&h("div",{className:"fu"},
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Payments 💰"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},ME.filter(function(m){return pay[m]}).length+"/"+ME.length+" paid")),
+          h("div",null,ME.slice().sort().map(function(n){var pd=pay[n];
+            return h("div",{key:n,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
               h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(n)}}),
               h("span",{style:{fontWeight:"500",fontSize:"13px",flex:1}},n),
-              h("span",{className:"badge "+(pd?"badge-paid":"badge-unpaid")},pd?"Paid":"Not Paid"),
-              user==="Hudson"&&h("button",{className:"btn-sm",onClick:function(){
-                var np=Object.assign({},pay);np[n]=!pd;setPay(np);
-                db.collection("payments").doc("status").set(np);
-              }},pd?"Mark Unpaid":"Mark Paid")
+              h("span",{className:"bg "+(pd?"bg-pd":"bg-up")},pd?"Paid":"Not Paid"),
+              isAdmin&&h("button",{className:"bs",onClick:function(){var np=Object.assign({},pay);np[n]=!pd;setPay(np);db.collection("payments").doc("status").set(np);}},pd?"Undo":"Mark Paid")
             );
           })),
-          h("div",{style:{padding:"12px 14px",fontSize:"12px",color:"#a8a29e",textAlign:"center"}},
-            user==="Hudson"?"You can toggle payment status above.":"Only Hudson (admin) can update payments."
-          )
+          !isAdmin&&h("div",{style:{padding:"12px",fontSize:"12px",color:"#a8a29e",textAlign:"center"}},"Only the admin can update payments.")
         )
       ),
 
       // STATS
-      tab==="stats"&&h("div",{className:"fade-up",style:{display:"flex",flexDirection:"column",gap:"14px"}},
-        h("div",{className:"card"},
-          h("div",{className:"card-header"},h("h2",{className:"serif",style:{fontWeight:"700"}},"Most Picked Golfers")),
+      tab==="stats"&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Most Picked Golfers")),
           h("div",{style:{padding:"14px",display:"flex",flexDirection:"column",gap:"10px"}},
-            stats.mp.map(function(e,i){
-              return h("div",{key:e[0],style:{display:"flex",alignItems:"center",gap:"10px"}},
-                h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#a8a29e",width:"18px",textAlign:"right"}},i+1),
-                h("div",{style:{flex:1}},
-                  h("div",{style:{display:"flex",gap:"8px",alignItems:"center"}},
-                    h("span",{style:{fontSize:"13px",fontWeight:"500"}},e[0]),
-                    h("span",{style:{fontSize:"11px",color:"#a8a29e"}},e[1]+" picks")
-                  ),
-                  h("div",{style:{marginTop:"4px",height:"7px",background:"#f5f5f4",borderRadius:"999px",overflow:"hidden"}},
-                    h("div",{style:{height:"100%",borderRadius:"999px",width:(e[1]/stats.mp[0][1]*100)+"%",background:"linear-gradient(90deg,#2d6a4f,#40916c)"}})
-                  )
-                )
-              );
-            })
+            stats.mp.map(function(e,i){return h("div",{key:e[0],style:{display:"flex",alignItems:"center",gap:"10px"}},
+              h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#a8a29e",width:"18px",textAlign:"right"}},i+1),
+              h("div",{style:{flex:1}},
+                h("div",{style:{display:"flex",gap:"8px",alignItems:"center"}},h("span",{style:{fontSize:"13px",fontWeight:"500"}},e[0]),h("span",{style:{fontSize:"11px",color:"#a8a29e"}},e[1]+" picks")),
+                h("div",{style:{marginTop:"4px",height:"7px",background:"#f5f5f4",borderRadius:"999px",overflow:"hidden"}},h("div",{style:{height:"100%",borderRadius:"999px",width:(e[1]/stats.mp[0][1]*100)+"%",background:"linear-gradient(90deg,#2d6a4f,#40916c)"}}))
+              )
+            )})
           )
         ),
-        h("div",{className:"card"},
-          h("div",{className:"card-header"},h("h2",{className:"serif",style:{fontWeight:"700"}},"Best Performing Golfers")),
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Best Performing Golfers")),
           h("div",null,stats.ba.map(function(g,i){
-            return h("div",{key:g.name,className:"golf-stripe",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
+            return h("div",{key:g.nm,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
               h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#a8a29e",width:"18px",textAlign:"right"}},i+1),
-              h("span",{style:{fontSize:"13px",fontWeight:"500",flex:1}},g.name),
-              h("span",{style:{fontSize:"11px",color:"#a8a29e"}},g.count+" picks"),
+              h("span",{style:{fontSize:"13px",fontWeight:"500",flex:1}},g.nm),
+              h("span",{style:{fontSize:"11px",color:"#a8a29e"}},g.ct+" picks"),
               h("div",{style:{fontSize:"13px",fontWeight:"700",color:g.avg<=10?"#047857":"#44403c"}},g.avg.toFixed(1)+" avg")
             );
           }))
         ),
-        h("div",{className:"card",style:{padding:"14px"}},
-          h("h2",{className:"serif",style:{fontWeight:"700",marginBottom:"10px"}},"Season Highlights"),
+        h("div",{className:"cd",style:{padding:"14px"}},
+          h("h2",{className:"sf",style:{fontWeight:"700",marginBottom:"10px"}},"Highlights"),
           h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}},
-            h("div",{style:{background:"#ecfdf5",borderRadius:"8px",padding:"10px",border:"1px solid #d1fae5"}},
-              h("div",{style:{fontSize:"11px",color:"#047857",fontWeight:"500"}},"Leader"),
-              h("div",{className:"serif",style:{fontWeight:"700",color:"#064e3b",fontSize:"17px"}},leader.name),
-              h("div",{style:{fontSize:"13px",color:"#047857"}},leader.total+" pts")
-            ),
-            h("div",{style:{background:"#fef2f2",borderRadius:"8px",padding:"10px",border:"1px solid #fecaca"}},
-              h("div",{style:{fontSize:"11px",color:"#dc2626",fontWeight:"500"}},"Last Place"),
-              h("div",{className:"serif",style:{fontWeight:"700",color:"#7f1d1d",fontSize:"17px"}},last.name),
-              h("div",{style:{fontSize:"13px",color:"#dc2626"}},last.total+" pts")
-            ),
-            (function(){
-              var best={name:"",pts:999,tn:"",golfer:""};
-              LB.forEach(function(m){m.bd.forEach(function(b){if(b.pts<best.pts)best={name:m.name,pts:b.pts,tn:b.tn,golfer:b.golfer};});});
-              return h("div",{style:{background:"#fffbeb",borderRadius:"8px",padding:"10px",border:"1px solid #fde68a"}},
-                h("div",{style:{fontSize:"11px",color:"#b45309",fontWeight:"500"}},"Best Week"),
-                h("div",{className:"serif",style:{fontWeight:"700",color:"#78350f"}},best.golfer),
-                h("div",{style:{fontSize:"12px",color:"#b45309"}},ord(best.pts)+" — "+best.name)
-              );
-            })(),
-            (function(){
-              var all=LB.reduce(function(a,m){return a.concat(m.bd.map(function(b){return b.pts;}));},[]);
-              var avg=all.length?(all.reduce(function(a,b){return a+b;},0)/all.length).toFixed(1):"–";
-              return h("div",{style:{background:"#f0f9ff",borderRadius:"8px",padding:"10px",border:"1px solid #bae6fd"}},
-                h("div",{style:{fontSize:"11px",color:"#0369a1",fontWeight:"500"}},"Avg / Week"),
-                h("div",{className:"serif",style:{fontWeight:"700",color:"#0c4a6e",fontSize:"17px"}},avg),
-                h("div",{style:{fontSize:"12px",color:"#0369a1"}},all.filter(function(s){return s>=65;}).length+" missed cuts")
-              );
-            })()
+            h("div",{style:{background:"#ecfdf5",borderRadius:"8px",padding:"10px",border:"1px solid #d1fae5"}},h("div",{style:{fontSize:"11px",color:"#047857",fontWeight:"500"}},"Leader"),h("div",{className:"sf",style:{fontWeight:"700",color:"#064e3b",fontSize:"17px"}},ld.nm),h("div",{style:{fontSize:"13px",color:"#047857"}},ld.t+" pts")),
+            h("div",{style:{background:"#fef2f2",borderRadius:"8px",padding:"10px",border:"1px solid #fecaca"}},h("div",{style:{fontSize:"11px",color:"#dc2626",fontWeight:"500"}},"Last Place"),h("div",{className:"sf",style:{fontWeight:"700",color:"#7f1d1d",fontSize:"17px"}},last.nm),h("div",{style:{fontSize:"13px",color:"#dc2626"}},last.t+" pts")),
+            (function(){var b={nm:"",p:999,tn:"",g:""};LB.forEach(function(m){m.bd.forEach(function(x){if(x.p<b.p)b={nm:m.nm,p:x.p,tn:x.tn,g:x.g}})});return h("div",{style:{background:"#fffbeb",borderRadius:"8px",padding:"10px",border:"1px solid #fde68a"}},h("div",{style:{fontSize:"11px",color:"#b45309",fontWeight:"500"}},"Best Week"),h("div",{className:"sf",style:{fontWeight:"700",color:"#78350f"}},b.g),h("div",{style:{fontSize:"12px",color:"#b45309"}},ord(b.p)+" — "+b.nm))})(),
+            (function(){var a=LB.reduce(function(r,m){return r.concat(m.bd.map(function(x){return x.p}))},[]);var av=a.length?(a.reduce(function(x,y){return x+y},0)/a.length).toFixed(1):"–";return h("div",{style:{background:"#f0f9ff",borderRadius:"8px",padding:"10px",border:"1px solid #bae6fd"}},h("div",{style:{fontSize:"11px",color:"#0369a1",fontWeight:"500"}},"Avg / Week"),h("div",{className:"sf",style:{fontWeight:"700",color:"#0c4a6e",fontSize:"17px"}},av),h("div",{style:{fontSize:"12px",color:"#0369a1"}},a.filter(function(s){return s>=65}).length+" MCs"))})()
           )
+        )
+      ),
+
+      // ═══ ADMIN TAB (Hudson only) ═══
+      tab==="admin"&&isAdmin&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
+        // Record Result
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Record Tournament Result")),
+          h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
+            h("select",{className:"if",value:adT,onChange:function(e){setAdT(e.target.value)}},h("option",{value:""},"Select tournament..."),TN.map(function(t){return h("option",{key:t.id,value:t.id},t.n+(t.mj?" (Major)":""))})),
+            h("select",{className:"if",value:adM,onChange:function(e){setAdM(e.target.value)}},h("option",{value:""},"Select member..."),ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n)})),
+            h("input",{className:"if",placeholder:"Golfer name",value:adG,onChange:function(e){setAdG(e.target.value)}}),
+            h("input",{className:"if",type:"number",placeholder:"Finishing position (score)",value:adS,onChange:function(e){setAdS(e.target.value)}}),
+            h("button",{className:"bp",onClick:adminRecordResult},"Record Result")
+          )
+        ),
+
+        // Set Deadline
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Set Pick Deadline")),
+          h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
+            h("input",{className:"if",placeholder:"Deadline message (e.g. 'Picks due for Arnold Palmer!')",value:dlText,onChange:function(e){setDlText(e.target.value)}}),
+            h("input",{className:"if",placeholder:"Time (e.g. 'Thursday 11:00 AM ET')",value:dlTime,onChange:function(e){setDlTime(e.target.value)}}),
+            h("div",{style:{display:"flex",gap:"8px"}},
+              h("button",{className:"bp",style:{flex:1},onClick:adminSetDeadline},"Set Deadline"),
+              dl&&h("button",{className:"bd",onClick:adminClearDeadline},"Clear")
+            )
+          )
+        ),
+
+        // Edit/Delete Picks
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Edit / Delete Picks")),
+          h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
+            h("select",{className:"if",value:adEpT,onChange:function(e){setAdEpT(e.target.value)}},h("option",{value:""},"Select tournament..."),uT.map(function(t){return h("option",{key:t.id,value:t.id},t.n)})),
+            h("select",{className:"if",value:adEpM,onChange:function(e){setAdEpM(e.target.value)}},h("option",{value:""},"Select member..."),ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n)})),
+            adEpT&&adEpM&&wp[adEpT+"_"+adEpM]&&h("div",{style:{padding:"8px 12px",background:"#f5f5f4",borderRadius:"8px",fontSize:"13px"}},"Current pick: ",h("strong",null,wp[adEpT+"_"+adEpM].golfer)),
+            h("input",{className:"if",placeholder:"New golfer name (for edit)",value:adG,onChange:function(e){setAdG(e.target.value)}}),
+            h("div",{style:{display:"flex",gap:"8px"}},
+              h("button",{className:"ba",style:{flex:1},onClick:adminEditPick},"Update Pick"),
+              h("button",{className:"bd",style:{flex:1},onClick:adminDeletePick},"Delete Pick")
+            )
+          )
+        ),
+
+        // Payment controls
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Payment Controls")),
+          h("div",null,ME.slice().sort().map(function(n){var pd=pay[n];
+            return h("div",{key:n,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
+              h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(n)}}),
+              h("span",{style:{fontWeight:"500",fontSize:"13px",flex:1}},n),
+              h("span",{className:"bg "+(pd?"bg-pd":"bg-up")},pd?"Paid":"Unpaid"),
+              h("button",{className:"bs",onClick:function(){var np=Object.assign({},pay);np[n]=!pd;setPay(np);db.collection("payments").doc("status").set(np)}},pd?"Undo":"Mark Paid")
+            );
+          }))
         )
       )
     ),
 
     // MEMBER MODAL
-    selMember&&h("div",{style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"},onClick:function(){setSelMember(null);}},
-      h("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)"}}),
-      h("div",{style:{position:"relative",background:"white",borderRadius:"12px",boxShadow:"0 25px 50px rgba(0,0,0,0.25)",maxWidth:"420px",width:"100%",maxHeight:"85vh",overflowY:"auto",animation:"modalIn 0.2s ease-out"},onClick:function(e){e.stopPropagation();}},
-        h("div",{style:{padding:"18px",borderBottom:"1px solid #e7e5e4"}},
+    selM&&h("div",{style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"},onClick:function(){setSelM(null)}},
+      h("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,.4)",backdropFilter:"blur(4px)"}}),
+      h("div",{style:{position:"relative",background:"white",borderRadius:"12px",boxShadow:"0 25px 50px rgba(0,0,0,.25)",maxWidth:"420px",width:"100%",maxHeight:"85vh",overflowY:"auto",animation:"modalIn .2s ease-out"},onClick:function(e){e.stopPropagation()}},
+        h("div",{style:{padding:"16px",borderBottom:"1px solid #e7e5e4"}},
           h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
-            h("div",{style:{display:"flex",alignItems:"center",gap:"10px"}},
-              h("div",{style:{width:"12px",height:"12px",borderRadius:"50%",background:mc(selMember.name)}}),
-              h("h3",{className:"serif",style:{fontSize:"18px",fontWeight:"700"}},selMember.name)
-            ),
-            h("button",{onClick:function(){setSelMember(null);},style:{background:"none",border:"none",color:"#a8a29e",fontSize:"22px",lineHeight:1}},"×")
+            h("div",{style:{display:"flex",alignItems:"center",gap:"10px"}},h("div",{style:{width:"12px",height:"12px",borderRadius:"50%",background:mc(selM.nm)}}),h("h3",{className:"sf",style:{fontSize:"17px",fontWeight:"700"}},selM.nm)),
+            h("button",{onClick:function(){setSelM(null)},style:{background:"none",border:"none",color:"#a8a29e",fontSize:"22px",lineHeight:1}},"×")
           ),
-          h("div",{style:{display:"flex",gap:"10px",marginTop:"8px",flexWrap:"wrap"}},
-            h("span",{className:"serif",style:{fontSize:"22px",fontWeight:"900"}},selMember.total+" pts"),
-            h("span",{className:"badge badge-default"},selMember.bd.length+" events"),
-            h("span",{className:"badge badge-default"},"Avg "+(selMember.total/Math.max(selMember.bd.length,1)).toFixed(1))
+          h("div",{style:{display:"flex",gap:"8px",marginTop:"8px",flexWrap:"wrap"}},
+            h("span",{className:"sf",style:{fontSize:"22px",fontWeight:"900"}},selM.t+" pts"),
+            h("span",{className:"bg bg-d"},selM.bd.length+" events"),
+            h("span",{className:"bg bg-d"},"Avg "+(selM.t/Math.max(selM.bd.length,1)).toFixed(1))
           )
         ),
-        h("div",{style:{padding:"14px",display:"flex",flexDirection:"column",gap:"6px"}},
-          selMember.bd.map(function(b,i){
-            return h("div",{key:i,style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 10px",borderRadius:"8px",background:"#fafaf9"}},
-              h("div",{style:{flex:1}},h("div",{style:{fontSize:"13px",fontWeight:"500"}},b.tn),h("div",{style:{fontSize:"11px",color:"#78716c"}},b.golfer)),
-              h("div",{style:{fontSize:"13px",fontWeight:"700",padding:"2px 8px",borderRadius:"4px",color:b.pts<=10?"#047857":b.pts>=65?"#dc2626":"#44403c",background:b.pts<=10?"#ecfdf5":b.pts>=65?"#fef2f2":"#f5f5f4"}},b.pts)
-            );
-          })
+        h("div",{style:{padding:"12px",display:"flex",flexDirection:"column",gap:"6px"}},
+          selM.bd.map(function(b,i){return h("div",{key:i,style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 10px",borderRadius:"8px",background:"#fafaf9"}},
+            h("div",{style:{flex:1}},h("div",{style:{fontSize:"13px",fontWeight:"500"}},b.tn),h("div",{style:{fontSize:"11px",color:"#78716c"}},b.g)),
+            h("div",{style:{fontSize:"13px",fontWeight:"700",padding:"2px 8px",borderRadius:"4px",color:b.p<=10?"#047857":b.p>=65?"#dc2626":"#44403c",background:b.p<=10?"#ecfdf5":b.p>=65?"#fef2f2":"#f5f5f4"}},b.p)
+          )})
         ),
-        h("div",{style:{padding:"14px",borderTop:"1px solid #f5f5f4"}},
-          h("div",{style:{fontSize:"11px",color:"#78716c",fontWeight:"500",marginBottom:"6px"}},"Golfers Used ("+selMember.ug.length+")"),
-          h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},selMember.ug.map(function(g,i){return h("span",{key:i,className:"badge badge-pick"},g);}))
+        h("div",{style:{padding:"12px",borderTop:"1px solid #f5f5f4"}},
+          h("div",{style:{fontSize:"11px",color:"#78716c",fontWeight:"500",marginBottom:"6px"}},"Golfers Used ("+selM.ug.length+")"),
+          h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},selM.ug.map(function(g,i){return h("span",{key:i,className:"bg bg-pk"},g)}))
         )
       )
     ),
 
     // PICK MODAL
-    spm&&h("div",{style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"},onClick:function(){setSpm(false);}},
-      h("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)"}}),
-      h("div",{style:{position:"relative",background:"white",borderRadius:"12px",boxShadow:"0 25px 50px rgba(0,0,0,0.25)",maxWidth:"420px",width:"100%",animation:"modalIn 0.2s ease-out"},onClick:function(e){e.stopPropagation();}},
-        h("div",{style:{padding:"18px",borderBottom:"1px solid #e7e5e4",display:"flex",justifyContent:"space-between",alignItems:"center"}},
-          h("h3",{className:"serif",style:{fontSize:"17px",fontWeight:"700"}},"Submit Your Pick"),
-          h("button",{onClick:function(){setSpm(false);},style:{background:"none",border:"none",color:"#a8a29e",fontSize:"22px",lineHeight:1}},"×")
+    spm&&h("div",{style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"},onClick:function(){setSpm(false)}},
+      h("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,.4)",backdropFilter:"blur(4px)"}}),
+      h("div",{style:{position:"relative",background:"white",borderRadius:"12px",boxShadow:"0 25px 50px rgba(0,0,0,.25)",maxWidth:"420px",width:"100%",animation:"modalIn .2s ease-out"},onClick:function(e){e.stopPropagation()}},
+        h("div",{style:{padding:"16px",borderBottom:"1px solid #e7e5e4",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+          h("h3",{className:"sf",style:{fontSize:"17px",fontWeight:"700"}},"Submit Your Pick"),
+          h("button",{onClick:function(){setSpm(false)},style:{background:"none",border:"none",color:"#a8a29e",fontSize:"22px",lineHeight:1}},"×")
         ),
-        h("div",{style:{padding:"18px",display:"flex",flexDirection:"column",gap:"14px"}},
-          h("div",null,
-            h("label",{style:{fontSize:"11px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Tournament"),
-            h("select",{className:"input-field",value:pt,onChange:function(e){setPt(e.target.value);}},
-              h("option",{value:""},"Select tournament..."),
-              upT.map(function(t){return h("option",{key:t.id,value:t.id},t.name+(t.isMajor?" (Major)":""));})
-            )
-          ),
-          h("div",null,
-            h("label",{style:{fontSize:"11px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Golfer"),
-            h("input",{className:"input-field",placeholder:"e.g. Scottie Scheffler",value:pg,onChange:function(e){setPg(e.target.value);},onKeyDown:function(e){if(e.key==="Enter")submitPick();}})
-          ),
+        h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
+          h("select",{className:"if",value:pt,onChange:function(e){setPt(e.target.value)}},h("option",{value:""},"Select tournament..."),uT.map(function(t){return h("option",{key:t.id,value:t.id},t.n+(t.mj?" (Major)":""))})),
+          h("input",{className:"if",placeholder:"Golfer name",value:pg,onChange:function(e){setPg(e.target.value)},onKeyDown:function(e){if(e.key==="Enter")submitPick()}}),
           usedG.length>0&&h("div",null,
             h("div",{style:{fontSize:"11px",color:"#78716c",fontWeight:"500",marginBottom:"4px"}},"Already used:"),
-            h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},usedG.map(function(g,i){return h("span",{key:i,className:"badge badge-default",style:{fontSize:"10px"}},g);}))
+            h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},usedG.map(function(g,i){return h("span",{key:i,className:"bg bg-d",style:{fontSize:"10px"}},g)}))
           ),
-          h("button",{className:"btn-primary",style:{width:"100%"},onClick:submitPick},"Submit Pick")
+          h("button",{className:"bp",onClick:submitPick},"Submit Pick")
         )
       )
     )
