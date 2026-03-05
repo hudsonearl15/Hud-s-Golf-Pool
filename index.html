@@ -98,6 +98,9 @@ function hc(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);
 function mc(n){var c=["#2d6a4f","#9b2226","#005f73","#bb3e03","#3a0ca3","#7b2cbf","#006d77","#9c6644","#264653","#e76f51","#606c38","#bc4749","#0077b6","#d4a373","#6a040f","#023e8a","#7f5539","#4a4e69","#386641","#d62828","#1d3557","#e63946"];return c[hc(n)%c.length];}
 function ord(n){var s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
 function ta(ts){var d=Date.now()-ts,m=Math.floor(d/60000),hr=Math.floor(d/3600000);if(m<1)return"now";if(m<60)return m+"m";if(hr<24)return hr+"h";return Math.floor(hr/24)+"d";}
+
+// PGA Tour golfer roster for autocomplete
+var GOLFERS=["Scottie Scheffler","Tommy Fleetwood","Rory McIlroy","Russell Henley","J.J. Spaun","JJ Spaun","Ben Griffin","Justin Thomas","Sepp Straka","Patrick Cantlay","Justin Rose","Harris English","Cameron Young","Keegan Bradley","Robert MacIntyre","Maverick McNealy","Ludvig Aberg","Corey Conners","Collin Morikawa","Andrew Novak","Shane Lowry","Sam Burns","Hideki Matsuyama","Viktor Hovland","Brian Harman","Nick Taylor","Sungjae Im","Akshay Bhatia","Chris Gotterup","Xander Schauffele","Jacob Bridgeman","Lucas Glover","Sam Stevens","Harry Hall","Tom Hoge","Si Woo Kim","Daniel Berger","Michael Kim","Ryan Fox","Wyndham Clark","Matt Fitzpatrick","Davis Thompson","Tony Finau","Sahith Theegala","Max Homa","Denny McCarthy","Taylor Pendrith","Billy Horschel","Jordan Spieth","Rickie Fowler","Min Woo Lee","Mackenzie Hughes","Austin Eckroat","Eric Cole","Chris Kirk","Byeong Hun An","Taylor Moore","Luke Clanton","Jason Day","Alex Smalley","JT Poston","Ryan Gerard","Jake Knapp","Brooks Koepka","Adam Scott","Nicolai Hojgaard","Rasmus Hojgaard","Sergio Garcia","Adam Hadwin","Christiaan Bezuidenhout","Thomas Detry","Patrick Reed","Aaron Rai","Keith Mitchell","Kieth Mitchell","Emiliano Grillo","Kurt Kitayama","Gary Woodland","Will Zalatoris","Mark Hubbard","Nico Echavarria","Brendon Todd","Alex Noren","Ben Kohles","Michael Thorbjornsen","David Ford","Luke List","Stephan Jaeger","Kevin Yu","Lanto Griffin","Rico Hoey","Matt Kuchar","Webb Simpson","Kevin Kisner","Beau Hossler","J.T. Poston","Cameron Davis","Nate Lashley","Charley Hoffman","Troy Merritt","Joel Dahmen","Garrick Higgo","Mito Pereira","Seamus Power","Tom Kim","Doug Ghim","Lee Hodges","Peter Malnati","Taylor Montgomery","Brice Garnett","Henrik Norlander","Vince Whaley","David Lipsky","C.T. Pan","CT Pan","Carson Young","Patton Kizzire","Wesley Bryan","Justin Lower","Chad Ramey","Matt NeSmith","Trey Mullinax","Ryan Moore","Kevin Streelman","Brian Stuard","Stewart Cink","Zach Johnson","Padraig Harrington","Phil Mickelson","Dustin Johnson","Jon Rahm","Tyrrell Hatton","Joaquin Niemann","Cameron Smith","Patrick Cantlay","Cam Davis","Mac Meissner","Gordon Sargent","Neal Shipley","Kevin Tway","Carson Young","Chandler Phillips","Jake Knapp","Rico Hoey","Steven Fisk","Kieta Nakajima","Matt Fitzpatrick","Shane Lowry","Ricky Fowler","Austin Smotherman","Nico Echavarria","Max McGreevy","Adrien Dumont de Chassart","Christo Lamprecht","Johnny Keefer","Jackson Koivun","Luke Clanton","Brendon Todd","Chan Kim","Jhonattan Vegas","S.H. Kim","Sangmoon Bae","K.H. Lee","Seonghyeon Kim","Kyoung-Hoon Lee","Dustin Johnson","Cameron Champ","Aaron Wise","Davis Riley","Victor Perez","Adrian Meronk","Dean Burmester","Ryan Palmer","Pat Perez","Justin Suh","Ben Taylor","Daniel Brown","Lee Westwood","Ian Poulter","Martin Kaymer","Louis Oosthuizen","Abraham Ancer","Kevin Na","Jason Kokrak","Matthew Wolff","Bryson DeChambeau","Tiger Woods"].filter(function(v,i,a){return a.indexOf(v)===i}).sort();
 var ADMIN="Hudson";
 var h=React.createElement,us=React.useState,ue=React.useEffect,ur=React.useRef,um=React.useMemo,uc=React.useCallback;
 
@@ -123,6 +126,7 @@ function App(){
   var _spm=us(false),spm=_spm[0],setSpm=_spm[1];
   var _pg=us(""),pg=_pg[0],setPg=_pg[1];
   var _pe=us(""),pe=_pe[0],setPe=_pe[1];
+  var _showAC=us(false),showAC=_showAC[0],setShowAC=_showAC[1];
   var _actT=us(function(){var nxt=TN.find(function(t){return t.st==="upcoming"});return nxt?{id:nxt.id,name:nxt.n}:null}),actT=_actT[0],setActT=_actT[1];
 
   // Admin state
@@ -221,6 +225,28 @@ function App(){
     Object.values(wp).forEach(function(p){if(p.member===user&&u.indexOf(p.golfer)<0)u.push(p.golfer);});
     return u;
   },[user,wp]);
+
+  // Autocomplete suggestions
+  var acSuggestions=um(function(){
+    if(!pg||pg.length<2)return[];
+    var q=pg.toLowerCase();
+    return GOLFERS.filter(function(g){return g.toLowerCase().indexOf(q)>=0}).slice(0,8).map(function(g){
+      var used=usedG.some(function(u){return u.toLowerCase()===g.toLowerCase()});
+      // Check who else has picked this golfer
+      var pickedBy=[];
+      Object.entries(AP).forEach(function(e){
+        Object.entries(e[1]).forEach(function(p){
+          if(p[1].g.toLowerCase()===g.toLowerCase()&&pickedBy.indexOf(p[0])<0)pickedBy.push(p[0]);
+        });
+      });
+      // Also check firebase picks
+      Object.values(wp).forEach(function(p){
+        if(p.golfer.toLowerCase()===g.toLowerCase()&&pickedBy.indexOf(p.member)<0)pickedBy.push(p.member);
+      });
+      var timesPicked=pickedBy.length;
+      return{name:g,used:used,timesPicked:timesPicked};
+    });
+  },[pg,usedG,wp]);
 
   var stats=um(function(){
     var gp={},gs={};
@@ -577,6 +603,33 @@ function App(){
           )
         ),
 
+        // Weekly Recap
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"📝 Weekly Recaps")),
+          h("div",null,cT.slice().reverse().map(function(t){
+            var picks=ME.map(function(n){var p=AP[t.id]&&AP[t.id][n];return p?{nm:n,g:p.g,s:p.s}:null}).filter(Boolean);
+            var sorted=picks.slice().sort(function(a,b){return a.s-b.s});
+            var winner=sorted[0];
+            var loser=sorted[sorted.length-1];
+            var avgScore=picks.reduce(function(a,p){return a+p.s},0)/picks.length;
+            var mcCount=picks.filter(function(p){return p.s>=65}).length;
+            // Most popular golfer
+            var golferCount={};picks.forEach(function(p){golferCount[p.g]=(golferCount[p.g]||0)+1});
+            var popGolfer=Object.entries(golferCount).sort(function(a,b){return b[1]-a[1]})[0];
+            return h("div",{key:t.id,style:{padding:"14px 16px",borderBottom:"1px solid #f5f5f4"}},
+              h("div",{style:{fontWeight:"700",fontSize:"14px",marginBottom:"8px"}},t.n),
+              h("div",{style:{fontSize:"13px",color:"#44403c",lineHeight:"1.8"}},
+                h("span",{style:{fontWeight:"600",color:"#047857"}},"🏆 "+winner.nm)," took the week with ",h("strong",null,winner.g)," finishing ",h("strong",null,ord(winner.s)),". ",
+                loser.s>=65?h("span",null,h("span",{style:{fontWeight:"600",color:"#dc2626"}},"💀 "+loser.nm)," had the worst week with a missed cut (",loser.g,"). "):
+                h("span",null,h("span",{style:{color:"#b91c1c"}},"📉 "+loser.nm)," brought up the rear with ",loser.g," at ",ord(loser.s),". "),
+                mcCount>0&&h("span",null,h("strong",null,mcCount)," member"+(mcCount>1?"s":"")+" took a 65-pt bomb. "),
+                popGolfer&&popGolfer[1]>1&&h("span",null,h("strong",null,popGolfer[0])," was the most popular pick (",popGolfer[1]," members","). "),
+                h("span",null,"Field average: ",h("strong",null,avgScore.toFixed(1)),".")
+              )
+            );
+          }))
+        ),
+
         // Weekly Winners
         h("div",{className:"cd"},
           h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"🏆 Weekly Winners")),
@@ -897,9 +950,29 @@ function App(){
             h("div",{style:{fontSize:"13px",color:"#92400e"}},"You already submitted: ",h("strong",null,wp[actT.id+"_"+user].golfer)),
             h("div",{style:{fontSize:"11px",color:"#b45309",marginTop:"4px"}},"Contact Hudson if you need to change your pick.")
           ):actT&&h(React.Fragment,null,
-            h("div",null,
+            h("div",{style:{position:"relative"}},
               h("label",{style:{fontSize:"12px",color:"#78716c",fontWeight:"500",display:"block",marginBottom:"4px"}},"Golfer Name"),
-              h("input",{className:"if",placeholder:"e.g. Scottie Scheffler",value:pg,onChange:function(e){setPg(e.target.value);setPe("")},onKeyDown:function(e){if(e.key==="Enter")submitPick()}})
+              h("input",{className:"if",placeholder:"Start typing a golfer name...",value:pg,
+                onChange:function(e){setPg(e.target.value);setShowAC(true);setPe("")},
+                onFocus:function(){if(pg.length>=2)setShowAC(true)},
+                onKeyDown:function(e){if(e.key==="Enter"){setShowAC(false);submitPick();}if(e.key==="Escape")setShowAC(false);}
+              }),
+              // Autocomplete dropdown
+              showAC&&acSuggestions.length>0&&h("div",{style:{position:"absolute",top:"100%",left:0,right:0,zIndex:60,background:"white",border:"1px solid #e7e5e4",borderRadius:"8px",boxShadow:"0 8px 24px rgba(0,0,0,0.12)",marginTop:"4px",maxHeight:"240px",overflowY:"auto"}},
+                acSuggestions.map(function(s){
+                  return h("button",{key:s.name,
+                    onClick:function(){setPg(s.name);setShowAC(false);setPe("");},
+                    style:{display:"flex",alignItems:"center",gap:"8px",width:"100%",padding:"10px 12px",border:"none",borderBottom:"1px solid #f5f5f4",background:s.used?"#fef2f2":"white",textAlign:"left",cursor:s.used?"not-allowed":"pointer",fontSize:"13px",transition:"background 0.1s"},
+                    onMouseOver:function(e){if(!s.used)e.currentTarget.style.background="#f5f5f4"},
+                    onMouseOut:function(e){e.currentTarget.style.background=s.used?"#fef2f2":"white"}
+                  },
+                    h("span",{style:{fontSize:"14px"}},s.used?"❌":"✅"),
+                    h("span",{style:{fontWeight:"500",flex:1,color:s.used?"#b91c1c":"#292524",textDecoration:s.used?"line-through":"none"}},s.name),
+                    s.used&&h("span",{style:{fontSize:"10px",color:"#dc2626",fontWeight:"600"}},"USED"),
+                    s.timesPicked>0&&!s.used&&h("span",{style:{fontSize:"10px",color:"#a8a29e"}},s.timesPicked+" pool pick"+(s.timesPicked>1?"s":""))
+                  );
+                })
+              )
             ),
             pe&&h("div",{style:{padding:"10px 12px",background:"#fef2f2",borderRadius:"8px",border:"1px solid #fecaca",fontSize:"13px",color:"#b91c1c"}},pe),
             usedG.length>0&&h("div",null,
