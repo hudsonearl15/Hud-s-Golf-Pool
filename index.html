@@ -122,9 +122,8 @@ function App(){
   var _dl=us(null),dl=_dl[0],setDl=_dl[1];
   var _spm=us(false),spm=_spm[0],setSpm=_spm[1];
   var _pg=us(""),pg=_pg[0],setPg=_pg[1];
-  var _pt=us(""),pt=_pt[0],setPt=_pt[1];
   var _pe=us(""),pe=_pe[0],setPe=_pe[1];
-  var _actT=us(null),actT=_actT[0],setActT=_actT[1];
+  var _actT=us(function(){var nxt=TN.find(function(t){return t.st==="upcoming"});return nxt?{id:nxt.id,name:nxt.n}:null}),actT=_actT[0],setActT=_actT[1];
 
   // Admin state
   var _adT=us(""),adT=_adT[0],setAdT=_adT[1];
@@ -156,7 +155,7 @@ function App(){
     var u2=db.collection("weeklyPicks").onSnapshot(function(s){var p={};s.forEach(function(d){p[d.id]=d.data();});setWp(p);});
     var u3=db.collection("payments").doc("status").onSnapshot(function(d){if(d.exists)setPay(d.data());});
     var u4=db.collection("settings").doc("deadline").onSnapshot(function(d){if(d.exists)setDl(d.data());});
-    var u5=db.collection("settings").doc("activeTournament").onSnapshot(function(d){if(d.exists)setActT(d.data());else{var nxt=TN.find(function(t){return t.st==="upcoming"});if(nxt)setActT({id:nxt.id,name:nxt.n});}});
+    var u5=db.collection("settings").doc("activeTournament").onSnapshot(function(d){if(d.exists){setActT(d.data());}else{var nxt=TN.find(function(t){return t.st==="upcoming"});if(nxt)setActT({id:nxt.id,name:nxt.n});}});
     return function(){u1();u2();u3();u4();u5();};
   },[screen]);
 
@@ -199,8 +198,9 @@ function App(){
 
   // Picks
   function submitPick(){
-    var tid=actT?actT.id:pt;
-    if(!pg.trim()||!tid||!user)return;
+    if(!actT){setPe("No active tournament set. Ask Hudson to set one.");return;}
+    var tid=actT.id;
+    if(!pg.trim()||!user){setPe("Enter a golfer name.");return;}
     var golferName=pg.trim();
     // Check if golfer already used (case-insensitive)
     var isUsed=usedG.some(function(g){return g.toLowerCase()===golferName.toLowerCase()});
