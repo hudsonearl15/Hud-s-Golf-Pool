@@ -134,6 +134,8 @@ function App(){
   var _dlTime=us(""),dlTime=_dlTime[0],setDlTime=_dlTime[1];
   var _adEpM=us(""),adEpM=_adEpM[0],setAdEpM=_adEpM[1];
   var _adEpT=us(""),adEpT=_adEpT[0],setAdEpT=_adEpT[1];
+  var _h2h1=us(""),h2h1=_h2h1[0],setH2h1=_h2h1[1];
+  var _h2h2=us(""),h2h2=_h2h2[0],setH2h2=_h2h2[1];
 
   var chatEnd=ur(null);
   var cT=TN.filter(function(t){return t.st==="completed"});
@@ -223,7 +225,54 @@ function App(){
   var stats=um(function(){
     var gp={},gs={};
     cT.forEach(function(t){Object.entries(AP[t.id]||{}).forEach(function(e){gp[e[1].g]=(gp[e[1].g]||0)+1;if(!gs[e[1].g])gs[e[1].g]=[];gs[e[1].g].push(e[1].s);});});
-    return{mp:Object.entries(gp).sort(function(a,b){return b[1]-a[1]}).slice(0,10),ba:Object.entries(gs).filter(function(e){return e[1].length>=2}).map(function(e){return{nm:e[0],avg:e[1].reduce(function(a,b){return a+b},0)/e[1].length,ct:e[1].length}}).sort(function(a,b){return a.avg-b.avg}).slice(0,8)};
+
+    // Most picked golfers
+    var mp=Object.entries(gp).sort(function(a,b){return b[1]-a[1]}).slice(0,10);
+    // Best avg golfers
+    var ba=Object.entries(gs).filter(function(e){return e[1].length>=2}).map(function(e){return{nm:e[0],avg:e[1].reduce(function(a,b){return a+b},0)/e[1].length,ct:e[1].length}}).sort(function(a,b){return a.avg-b.avg}).slice(0,8);
+
+    // Weekly winners (lowest score each week)
+    var ww=cT.map(function(t){
+      var best={nm:"",s:999};
+      ME.forEach(function(n){var p=AP[t.id]&&AP[t.id][n];if(p&&p.s<best.s)best={nm:n,s:p.s,g:p.g};});
+      return{tn:t.n,tid:t.id,winner:best.nm,score:best.s,golfer:best.g};
+    });
+
+    // Most MCs by member
+    var mcs=LB.map(function(m){var c=m.bd.filter(function(b){return b.p>=65}).length;return{nm:m.nm,mcs:c}}).sort(function(a,b){return b.mcs-a.mcs});
+
+    // Field avg per tournament, then luck score per member
+    var fieldAvg={};
+    cT.forEach(function(t){
+      var scores=[];ME.forEach(function(n){var p=AP[t.id]&&AP[t.id][n];if(p)scores.push(p.s);});
+      fieldAvg[t.id]=scores.length?scores.reduce(function(a,b){return a+b},0)/scores.length:0;
+    });
+    var luck=LB.map(function(m){
+      if(m.bd.length===0)return{nm:m.nm,luck:0,avg:0,fAvg:0};
+      var memberAvg=m.t/m.bd.length;
+      var memberFieldAvg=m.bd.reduce(function(a,b){return a+fieldAvg[b.tid]},0)/m.bd.length;
+      return{nm:m.nm,luck:memberFieldAvg-memberAvg,avg:memberAvg,fAvg:memberFieldAvg};
+    }).sort(function(a,b){return b.luck-a.luck});
+
+    // Streaks: for each member, get their last 3 scores and compute trend
+    var streaks=LB.map(function(m){
+      if(m.bd.length<2)return null;
+      var last3=m.bd.slice(-3);
+      var avgLast3=last3.reduce(function(a,b){return a+b.p},0)/last3.length;
+      var avgAll=m.t/m.bd.length;
+      var trend=avgAll-avgLast3; // positive = hot (recent better than avg)
+      return{nm:m.nm,trend:trend,avgR:avgLast3,avgA:avgAll,last3:last3};
+    }).filter(Boolean).sort(function(a,b){return b.trend-a.trend});
+
+    // Power rankings: weighted (recent tournaments count more)
+    var pr=LB.map(function(m){
+      if(m.bd.length===0)return{nm:m.nm,pw:999};
+      var weighted=0,wTotal=0;
+      m.bd.forEach(function(b,i){var w=i+1;weighted+=b.p*w;wTotal+=w;});
+      return{nm:m.nm,pw:weighted/wTotal};
+    }).sort(function(a,b){return a.pw-b.pw});
+
+    return{mp:mp,ba:ba,ww:ww,mcs:mcs,luck:luck,streaks:streaks,pr:pr};
   },[]);
 
   // Admin functions
@@ -516,6 +565,178 @@ function App(){
 
       // STATS
       tab==="stats"&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
+
+        // Highlights
+        h("div",{className:"cd",style:{padding:"14px"}},
+          h("h2",{className:"sf",style:{fontWeight:"700",marginBottom:"10px"}},"Season Highlights"),
+          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}},
+            h("div",{style:{background:"#ecfdf5",borderRadius:"8px",padding:"10px",border:"1px solid #d1fae5"}},h("div",{style:{fontSize:"11px",color:"#047857",fontWeight:"500"}},"Leader"),h("div",{className:"sf",style:{fontWeight:"700",color:"#064e3b",fontSize:"17px"}},ld.nm),h("div",{style:{fontSize:"13px",color:"#047857"}},ld.t+" pts")),
+            h("div",{style:{background:"#fef2f2",borderRadius:"8px",padding:"10px",border:"1px solid #fecaca"}},h("div",{style:{fontSize:"11px",color:"#dc2626",fontWeight:"500"}},"Last Place"),h("div",{className:"sf",style:{fontWeight:"700",color:"#7f1d1d",fontSize:"17px"}},last.nm),h("div",{style:{fontSize:"13px",color:"#dc2626"}},last.t+" pts")),
+            (function(){var b={nm:"",p:999,tn:"",g:""};LB.forEach(function(m){m.bd.forEach(function(x){if(x.p<b.p)b={nm:m.nm,p:x.p,tn:x.tn,g:x.g}})});return h("div",{style:{background:"#fffbeb",borderRadius:"8px",padding:"10px",border:"1px solid #fde68a"}},h("div",{style:{fontSize:"11px",color:"#b45309",fontWeight:"500"}},"Best Week"),h("div",{className:"sf",style:{fontWeight:"700",color:"#78350f"}},b.g),h("div",{style:{fontSize:"12px",color:"#b45309"}},ord(b.p)+" — "+b.nm))})(),
+            (function(){var a=LB.reduce(function(r,m){return r.concat(m.bd.map(function(x){return x.p}))},[]);var av=a.length?(a.reduce(function(x,y){return x+y},0)/a.length).toFixed(1):"–";return h("div",{style:{background:"#f0f9ff",borderRadius:"8px",padding:"10px",border:"1px solid #bae6fd"}},h("div",{style:{fontSize:"11px",color:"#0369a1",fontWeight:"500"}},"Avg / Week"),h("div",{className:"sf",style:{fontWeight:"700",color:"#0c4a6e",fontSize:"17px"}},av),h("div",{style:{fontSize:"12px",color:"#0369a1"}},a.filter(function(s){return s>=65}).length+" MCs"))})()
+          )
+        ),
+
+        // Weekly Winners
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"🏆 Weekly Winners")),
+          h("div",null,stats.ww.map(function(w){
+            return h("div",{key:w.tid,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px"}},
+              h("div",{style:{flex:1,minWidth:0}},
+                h("div",{style:{fontSize:"13px",fontWeight:"500"}},w.tn),
+                h("div",{style:{fontSize:"11px",color:"#78716c"}},w.golfer)
+              ),
+              h("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
+                h("div",{style:{width:"7px",height:"7px",borderRadius:"50%",background:mc(w.winner)}}),
+                h("span",{style:{fontSize:"13px",fontWeight:"600"}},w.winner)
+              ),
+              h("div",{className:"sf",style:{fontWeight:"700",fontSize:"15px",color:"#047857",minWidth:"30px",textAlign:"right"}},w.score)
+            );
+          }))
+        ),
+
+        // Power Rankings
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"⚡ Power Rankings"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},"Recent weeks weighted heavier")),
+          h("div",null,stats.pr.map(function(m,i){
+            var change=null;var lbIdx=LB.findIndex(function(x){return x.nm===m.nm});
+            if(lbIdx>=0)change=lbIdx-i;
+            return h("div",{key:m.nm,className:"gs hr",style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px"}},
+              h("div",{className:"pb"+(i<3?" p"+(i+1):""),style:i>2?{background:"#f5f5f4",color:"#78716c"}:undefined},i+1),
+              h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(m.nm)}}),
+              h("span",{style:{fontWeight:"600",fontSize:"13px",flex:1}},m.nm),
+              change!==null&&change!==0&&h("span",{style:{fontSize:"11px",fontWeight:"600",color:change>0?"#047857":"#dc2626"}},change>0?"▲"+change:"▼"+Math.abs(change)),
+              h("div",{style:{fontSize:"13px",fontWeight:"700",color:"#44403c"}},m.pw<999?m.pw.toFixed(1):"–")
+            );
+          }))
+        ),
+
+        // Hot/Cold Streaks
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"🔥 Hot & Cold Streaks"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},"Last 3 vs season avg")),
+          h("div",null,stats.streaks.map(function(s,i){
+            var isHot=s.trend>3;var isCold=s.trend<-3;
+            return h("div",{key:s.nm,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px"}},
+              h("div",{style:{fontSize:"16px",width:"24px",textAlign:"center"}},isHot?"🔥":isCold?"🥶":"➖"),
+              h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(s.nm)}}),
+              h("span",{style:{fontWeight:"500",fontSize:"13px",flex:1}},s.nm),
+              h("div",{style:{textAlign:"right"}},
+                h("div",{style:{fontSize:"12px",fontWeight:"600",color:isHot?"#047857":isCold?"#dc2626":"#78716c"}},"Last 3: "+s.avgR.toFixed(1)),
+                h("div",{style:{fontSize:"11px",color:"#a8a29e"}},"Season: "+s.avgA.toFixed(1))
+              )
+            );
+          }))
+        ),
+
+        // Luckiest / Unluckiest
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"🍀 Luck Index"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},"Your avg vs field avg")),
+          h("div",{style:{padding:"10px 14px",fontSize:"12px",color:"#78716c",borderBottom:"1px solid #f5f5f4"}},"Positive = picking better than the field average. Negative = worse luck."),
+          h("div",null,stats.luck.map(function(m,i){
+            if(m.avg===0)return null;
+            var isLucky=m.luck>2;var isUnlucky=m.luck<-2;
+            return h("div",{key:m.nm,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
+              h("div",{style:{fontSize:"14px",width:"22px",textAlign:"center"}},isLucky?"🍀":isUnlucky?"😤":"😐"),
+              h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(m.nm)}}),
+              h("span",{style:{fontWeight:"500",fontSize:"13px",flex:1}},m.nm),
+              h("div",{style:{textAlign:"right"}},
+                h("div",{style:{fontSize:"12px",fontWeight:"700",color:isLucky?"#047857":isUnlucky?"#dc2626":"#78716c"}},(m.luck>0?"+":"")+m.luck.toFixed(1)),
+                h("div",{style:{fontSize:"10px",color:"#a8a29e"}},"You: "+m.avg.toFixed(1)+" | Field: "+m.fAvg.toFixed(1))
+              )
+            );
+          }))
+        ),
+
+        // Most Missed Cuts
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"💀 Most Missed Cuts")),
+          h("div",null,stats.mcs.filter(function(m){return m.mcs>0}).map(function(m,i){
+            return h("div",{key:m.nm,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"9px 14px"}},
+              h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#a8a29e",width:"18px",textAlign:"right"}},i+1),
+              h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:mc(m.nm)}}),
+              h("span",{style:{fontWeight:"500",fontSize:"13px",flex:1}},m.nm),
+              h("div",{style:{display:"flex",gap:"3px"}},
+                Array.from({length:m.mcs},function(_,j){return h("span",{key:j,style:{fontSize:"12px"}},"💀")})
+              ),
+              h("div",{style:{fontSize:"13px",fontWeight:"700",color:"#dc2626",minWidth:"20px",textAlign:"right"}},m.mcs)
+            );
+          }))
+        ),
+
+        // Head to Head
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"⚔️ Head-to-Head")),
+          h("div",{style:{padding:"14px",display:"flex",flexDirection:"column",gap:"10px"}},
+            h("div",{style:{display:"flex",gap:"8px"}},
+              h("select",{className:"if",style:{flex:1},value:h2h1,onChange:function(e){setH2h1(e.target.value)}},
+                h("option",{value:""},"Player 1..."),ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n)})
+              ),
+              h("div",{style:{display:"flex",alignItems:"center",fontWeight:"700",color:"#78716c",fontSize:"13px"}},"vs"),
+              h("select",{className:"if",style:{flex:1},value:h2h2,onChange:function(e){setH2h2(e.target.value)}},
+                h("option",{value:""},"Player 2..."),ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n)})
+              )
+            ),
+            h2h1&&h2h2&&h2h1!==h2h2&&(function(){
+              var m1=LB.find(function(x){return x.nm===h2h1});
+              var m2=LB.find(function(x){return x.nm===h2h2});
+              if(!m1||!m2)return null;
+              var wins1=0,wins2=0,ties=0;
+              cT.forEach(function(t){
+                var p1=AP[t.id]&&AP[t.id][h2h1];
+                var p2=AP[t.id]&&AP[t.id][h2h2];
+                if(p1&&p2){if(p1.s<p2.s)wins1++;else if(p2.s<p1.s)wins2++;else ties++;}
+              });
+              return h("div",null,
+                // Score summary
+                h("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",gap:"16px",padding:"16px",background:"#fafaf9",borderRadius:"10px",marginBottom:"10px"}},
+                  h("div",{style:{textAlign:"center"}},
+                    h("div",{style:{width:"10px",height:"10px",borderRadius:"50%",background:mc(h2h1),margin:"0 auto 4px"}}),
+                    h("div",{style:{fontWeight:"600",fontSize:"13px"}},h2h1),
+                    h("div",{className:"sf",style:{fontSize:"28px",fontWeight:"900",color:wins1>wins2?"#047857":"#44403c"}},wins1)
+                  ),
+                  h("div",{style:{textAlign:"center"}},
+                    h("div",{style:{fontSize:"11px",color:"#a8a29e",fontWeight:"500"}},"TIES"),
+                    h("div",{className:"sf",style:{fontSize:"20px",fontWeight:"700",color:"#78716c"}},ties)
+                  ),
+                  h("div",{style:{textAlign:"center"}},
+                    h("div",{style:{width:"10px",height:"10px",borderRadius:"50%",background:mc(h2h2),margin:"0 auto 4px"}}),
+                    h("div",{style:{fontWeight:"600",fontSize:"13px"}},h2h2),
+                    h("div",{className:"sf",style:{fontSize:"28px",fontWeight:"900",color:wins2>wins1?"#047857":"#44403c"}},wins2)
+                  )
+                ),
+                // Total points comparison
+                h("div",{style:{display:"flex",gap:"8px",marginBottom:"10px"}},
+                  h("div",{style:{flex:1,padding:"8px",borderRadius:"6px",background:m1.t<m2.t?"#ecfdf5":"#f5f5f4",textAlign:"center"}},
+                    h("div",{style:{fontSize:"11px",color:"#78716c"}},"Total"),
+                    h("div",{style:{fontWeight:"700",fontSize:"15px"}},m1.t+" pts")
+                  ),
+                  h("div",{style:{flex:1,padding:"8px",borderRadius:"6px",background:m2.t<m1.t?"#ecfdf5":"#f5f5f4",textAlign:"center"}},
+                    h("div",{style:{fontSize:"11px",color:"#78716c"}},"Total"),
+                    h("div",{style:{fontWeight:"700",fontSize:"15px"}},m2.t+" pts")
+                  )
+                ),
+                // Week by week
+                h("div",{style:{fontSize:"11px",fontWeight:"600",color:"#78716c",marginBottom:"6px"}},"WEEK BY WEEK"),
+                cT.map(function(t){
+                  var p1=AP[t.id]&&AP[t.id][h2h1];
+                  var p2=AP[t.id]&&AP[t.id][h2h2];
+                  if(!p1||!p2)return null;
+                  var w=p1.s<p2.s?1:p2.s<p1.s?2:0;
+                  return h("div",{key:t.id,className:"gs",style:{display:"flex",alignItems:"center",gap:"8px",padding:"7px 10px",borderRadius:"6px"}},
+                    h("div",{style:{fontSize:"12px",color:"#a8a29e",flex:1,minWidth:0}},t.n),
+                    h("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
+                      h("div",{style:{fontSize:"12px",fontWeight:"700",color:w===1?"#047857":w===2?"#dc2626":"#78716c",minWidth:"20px",textAlign:"right"}},p1.s),
+                      h("div",{style:{fontSize:"10px",color:"#a8a29e"}},"vs"),
+                      h("div",{style:{fontSize:"12px",fontWeight:"700",color:w===2?"#047857":w===1?"#dc2626":"#78716c",minWidth:"20px"}},p2.s)
+                    )
+                  );
+                })
+              );
+            })()
+          )
+        ),
+
+        // Most Picked Golfers
         h("div",{className:"cd"},
           h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Most Picked Golfers")),
           h("div",{style:{padding:"14px",display:"flex",flexDirection:"column",gap:"10px"}},
@@ -528,6 +749,8 @@ function App(){
             )})
           )
         ),
+
+        // Best Performing Golfers
         h("div",{className:"cd"},
           h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Best Performing Golfers")),
           h("div",null,stats.ba.map(function(g,i){
@@ -538,15 +761,6 @@ function App(){
               h("div",{style:{fontSize:"13px",fontWeight:"700",color:g.avg<=10?"#047857":"#44403c"}},g.avg.toFixed(1)+" avg")
             );
           }))
-        ),
-        h("div",{className:"cd",style:{padding:"14px"}},
-          h("h2",{className:"sf",style:{fontWeight:"700",marginBottom:"10px"}},"Highlights"),
-          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}},
-            h("div",{style:{background:"#ecfdf5",borderRadius:"8px",padding:"10px",border:"1px solid #d1fae5"}},h("div",{style:{fontSize:"11px",color:"#047857",fontWeight:"500"}},"Leader"),h("div",{className:"sf",style:{fontWeight:"700",color:"#064e3b",fontSize:"17px"}},ld.nm),h("div",{style:{fontSize:"13px",color:"#047857"}},ld.t+" pts")),
-            h("div",{style:{background:"#fef2f2",borderRadius:"8px",padding:"10px",border:"1px solid #fecaca"}},h("div",{style:{fontSize:"11px",color:"#dc2626",fontWeight:"500"}},"Last Place"),h("div",{className:"sf",style:{fontWeight:"700",color:"#7f1d1d",fontSize:"17px"}},last.nm),h("div",{style:{fontSize:"13px",color:"#dc2626"}},last.t+" pts")),
-            (function(){var b={nm:"",p:999,tn:"",g:""};LB.forEach(function(m){m.bd.forEach(function(x){if(x.p<b.p)b={nm:m.nm,p:x.p,tn:x.tn,g:x.g}})});return h("div",{style:{background:"#fffbeb",borderRadius:"8px",padding:"10px",border:"1px solid #fde68a"}},h("div",{style:{fontSize:"11px",color:"#b45309",fontWeight:"500"}},"Best Week"),h("div",{className:"sf",style:{fontWeight:"700",color:"#78350f"}},b.g),h("div",{style:{fontSize:"12px",color:"#b45309"}},ord(b.p)+" — "+b.nm))})(),
-            (function(){var a=LB.reduce(function(r,m){return r.concat(m.bd.map(function(x){return x.p}))},[]);var av=a.length?(a.reduce(function(x,y){return x+y},0)/a.length).toFixed(1):"–";return h("div",{style:{background:"#f0f9ff",borderRadius:"8px",padding:"10px",border:"1px solid #bae6fd"}},h("div",{style:{fontSize:"11px",color:"#0369a1",fontWeight:"500"}},"Avg / Week"),h("div",{className:"sf",style:{fontWeight:"700",color:"#0c4a6e",fontSize:"17px"}},av),h("div",{style:{fontSize:"12px",color:"#0369a1"}},a.filter(function(s){return s>=65}).length+" MCs"))})()
-          )
         )
       ),
 
