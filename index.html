@@ -3,9 +3,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Golf Pool"/>
+  <meta name="theme-color" content="#1b4332"/>
   <title>Hud's Golf Pool — 2026 PGA Tour</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>"/>
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231b4332'/><text x='50' y='65' font-size='50' text-anchor='middle'>⛳</text></svg>"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -49,7 +54,22 @@
     .cs{background:#2d6a4f;color:white;align-self:flex-end;border-bottom-right-radius:4px}
     .dl{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
     .err{color:#dc2626;font-size:13px;margin-top:6px;text-align:center}
-    @media(max-width:500px){.tb{font-size:10px;padding:7px 3px}}
+    @keyframes confetti-fall{0%{transform:translateY(-100vh) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+    @keyframes confetti-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+    .confetti-piece{position:fixed;width:10px;height:10px;top:-10px;z-index:999;animation:confetti-fall 3s ease-out forwards,confetti-shake 0.5s ease-in-out infinite}
+    .shame-card{background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:12px;padding:14px;border:1px solid #2a2a4a;color:white}
+    .install-banner{background:linear-gradient(135deg,#1b4332,#2d6a4f);color:white;padding:12px 16px;border-radius:10px;display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer}
+    @media(max-width:500px){
+      .tb{font-size:10px;padding:8px 3px}
+      .cd{border-radius:10px}
+      .ch{padding:12px 14px}
+      .bp{padding:12px 16px;font-size:15px;min-height:48px}
+      .bs{padding:8px 12px;min-height:40px}
+      .if{padding:12px;font-size:16px;min-height:48px}
+      .gs{padding:12px 14px !important}
+      .pb{min-width:32px;height:32px;font-size:14px}
+      select.if{font-size:16px;min-height:48px}
+    }
   </style>
 </head>
 <body>
@@ -107,6 +127,22 @@ var GOLFERS=["Scottie Scheffler","Tommy Fleetwood","Rory McIlroy","Russell Henle
 var ADMIN="Hudson";
 var h=React.createElement,us=React.useState,ue=React.useEffect,ur=React.useRef,um=React.useMemo,uc=React.useCallback;
 
+// Confetti launcher
+function launchConfetti(){
+  var colors=["#ffd700","#ff6b6b","#48dbfb","#ff9ff3","#54a0ff","#5f27cd","#01a3a4","#f368e0"];
+  for(var i=0;i<60;i++){
+    var el=document.createElement("div");el.className="confetti-piece";
+    el.style.left=Math.random()*100+"vw";
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.width=(Math.random()*8+6)+"px";el.style.height=(Math.random()*8+6)+"px";
+    el.style.borderRadius=Math.random()>.5?"50%":"0";
+    el.style.animationDuration=(Math.random()*2+2)+"s";
+    el.style.animationDelay=(Math.random()*1.5)+"s";
+    document.body.appendChild(el);
+    setTimeout(function(e){e.remove()}.bind(null,el),5000);
+  }
+}
+
 function App(){
   // Auth state
   var _u=us(null),user=_u[0],setUser=_u[1];
@@ -143,6 +179,7 @@ function App(){
   var _adEpT=us(""),adEpT=_adEpT[0],setAdEpT=_adEpT[1];
   var _h2h1=us(""),h2h1=_h2h1[0],setH2h1=_h2h1[1];
   var _h2h2=us(""),h2h2=_h2h2[0],setH2h2=_h2h2[1];
+  var _alog=us([]),auditLog=_alog[0],setAuditLog=_alog[1];
 
   var chatEnd=ur(null);
   var cT=TN.filter(function(t){return t.st==="completed"});
@@ -165,10 +202,14 @@ function App(){
     var u3=db.collection("payments").doc("status").onSnapshot(function(d){if(d.exists)setPay(d.data());});
     var u4=db.collection("settings").doc("deadline").onSnapshot(function(d){if(d.exists)setDl(d.data());});
     var u5=db.collection("settings").doc("activeTournament").onSnapshot(function(d){if(d.exists){setActT(d.data());}else{var nxt=TN.find(function(t){return t.st==="upcoming"});if(nxt)setActT({id:nxt.id,name:nxt.n});}});
-    return function(){u1();u2();u3();u4();u5();};
+    var u6=db.collection("auditLog").orderBy("timestamp","desc").limit(50).onSnapshot(function(s){var l=[];s.forEach(function(d){l.push(Object.assign({id:d.id},d.data()));});setAuditLog(l);});
+    return function(){u1();u2();u3();u4();u5();u6();};
   },[screen]);
 
   ue(function(){if(chatEnd.current)chatEnd.current.scrollIntoView({behavior:"smooth"});},[msgs]);
+
+  // Auto-lock check: if deadline has revealsAt and it's passed, picks are auto-locked
+  var picksLocked=dl&&dl.revealsAt&&Date.now()>dl.revealsAt;
 
   // Auth functions
   function doLogin(){
@@ -199,6 +240,11 @@ function App(){
 
   function logout(){setUser(null);setScreen("login");setTab("leaderboard");try{sessionStorage.removeItem("gp-user");}catch(e){}}
 
+  // Audit logger
+  function logAudit(action,details){
+    db.collection("auditLog").add({user:user||"system",action:action,details:details||"",timestamp:Date.now()});
+  }
+
   // Chat
   function sendChat(){
     if(!ci.trim()||!user)return;
@@ -208,6 +254,7 @@ function App(){
   // Picks
   function submitPick(){
     if(!actT){setPe("No active tournament set. Ask Hudson to set one.");return;}
+    if(picksLocked&&!isAdmin){setPe("⏰ Picks are locked! The deadline has passed.");return;}
     var tid=actT.id;
     if(!pg.trim()||!user){setPe("Enter a golfer name.");return;}
     var golferName=pg.trim();
@@ -219,6 +266,7 @@ function App(){
     if(existingPick){setPe("You already submitted "+existingPick.golfer+" for this tournament. Contact Hudson to change it.");return;}
     setPe("");
     db.collection("weeklyPicks").doc(tid+"_"+user).set({member:user,tournament:tid,golfer:golferName,timestamp:Date.now()});
+    logAudit("pick_submitted",user+" picked "+golferName+" for "+actT.name);
     setPg("");setSpm(false);
   }
 
@@ -308,30 +356,33 @@ function App(){
   function adminRecordResult(){
     if(!adT||!adM||!adS)return;
     var score=parseInt(adS);if(isNaN(score)||score<1)return;
+    var tn=TN.find(function(t){return t.id===adT});
     db.collection("results").doc(adT+"_"+adM).set({tournament:adT,member:adM,golfer:adG||"Unknown",score:score,timestamp:Date.now()});
-    setAdS("");setAdG("");alert("Result recorded: "+adM+" scored "+score+" at "+TN.find(function(t){return t.id===adT}).n);
+    logAudit("result_recorded",adM+" scored "+score+" at "+(tn?tn.n:adT)+" ("+adG+")");
+    launchConfetti();
+    setAdS("");setAdG("");alert("Result recorded: "+adM+" scored "+score);
   }
 
   function adminSetDeadline(){
     if(!dlText.trim())return;
     var reveals=null;
-    if(dlTime.trim()){
-      // Try to parse the time string into a timestamp
-      var d=new Date(dlTime.trim());
-      if(!isNaN(d.getTime()))reveals=d.getTime();
-    }
+    if(dlTime.trim()){var d=new Date(dlTime.trim());if(!isNaN(d.getTime()))reveals=d.getTime();}
     db.collection("settings").doc("deadline").set({text:dlText.trim(),time:dlTime.trim(),revealsAt:reveals,updated:Date.now()});
-    alert("Deadline set!"+(reveals?" Picks hidden until "+new Date(reveals).toLocaleString():" (No auto-reveal set — picks stay hidden until you clear the deadline)"));
+    logAudit("deadline_set",dlText.trim()+(reveals?" (locks at "+new Date(reveals).toLocaleString()+")":""));
+    alert("Deadline set!"+(reveals?" Picks auto-lock at "+new Date(reveals).toLocaleString():" (Picks hidden until you clear the deadline)"));
   }
 
   function adminClearDeadline(){
     db.collection("settings").doc("deadline").delete();setDl(null);
+    logAudit("deadline_cleared","Deadline removed, picks revealed");
   }
 
   function adminDeletePick(){
     if(!adEpT||!adEpM)return;
     var key=adEpT+"_"+adEpM;
+    var oldPick=wp[key];
     db.collection("weeklyPicks").doc(key).delete().then(function(){
+      logAudit("pick_deleted","Deleted "+adEpM+"'s pick"+(oldPick?" ("+oldPick.golfer+")":""));
       alert("Pick deleted for "+adEpM);setAdEpM("");
     }).catch(function(){alert("No pick found to delete");});
   }
@@ -339,9 +390,46 @@ function App(){
   function adminEditPick(){
     if(!adEpT||!adEpM||!adG)return;
     var key=adEpT+"_"+adEpM;
+    var oldPick=wp[key];
     db.collection("weeklyPicks").doc(key).set({member:adEpM,tournament:adEpT,golfer:adG.trim(),timestamp:Date.now()},{merge:true});
+    logAudit("pick_edited","Changed "+adEpM+"'s pick from "+(oldPick?oldPick.golfer:"none")+" to "+adG.trim());
     alert("Pick updated for "+adEpM+" → "+adG);setAdG("");
   }
+
+  // Password reset (admin only)
+  var _resetMember=us(""),resetMember=_resetMember[0],setResetMember=_resetMember[1];
+  var _resetPw=us(""),resetPw=_resetPw[0],setResetPw=_resetPw[1];
+  function adminResetPassword(){
+    if(!resetMember||!resetPw||resetPw.length<4){alert("Select member and enter new password (min 4 chars)");return;}
+    db.collection("users").doc(resetMember).set({pw:resetPw,created:Date.now()},{merge:true});
+    logAudit("password_reset","Reset password for "+resetMember);
+    alert("Password reset for "+resetMember);setResetPw("");
+  }
+
+  // Export all data
+  function adminExportData(){
+    var data={leaderboard:OFFICIAL_TOTALS,picks:AP,firebasePicks:wp,payments:pay,members:ME,tournaments:TN};
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");a.href=url;a.download="huds-golf-pool-backup-"+new Date().toISOString().slice(0,10)+".json";
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    logAudit("data_exported","Full data backup downloaded");
+  }
+
+  // Wall of Shame data
+  var shame=um(function(){
+    var worst=[];
+    LB.forEach(function(m){
+      m.bd.forEach(function(b){
+        worst.push({nm:m.nm,tn:b.tn,g:b.g,s:b.p});
+      });
+    });
+    worst.sort(function(a,b){return b.s-a.s});
+    // Also compute: most MCs, worst avg, biggest single-week bomb
+    var mcKing={nm:"",ct:0};
+    LB.forEach(function(m){var c=m.bd.filter(function(b){return b.p>=65}).length;if(c>mcKing.ct)mcKing={nm:m.nm,ct:c};});
+    return{worst:worst.slice(0,15),mcKing:mcKing};
+  },[]);
 
   // ═══ LOGIN SCREEN ═══
   if(screen==="login"){
@@ -410,9 +498,9 @@ function App(){
   }
 
   // ═══ MAIN APP ═══
-  var tabList=["leaderboard","picks","schedule","chat","payments","stats"];
+  var tabList=["leaderboard","picks","schedule","chat","shame","payments","stats"];
   if(isAdmin)tabList.push("admin");
-  var tabLabels={leaderboard:"Board",picks:"Picks",schedule:"Events",chat:"Chat 💬",payments:"Pay 💰",stats:"Stats",admin:"Admin ⚙️"};
+  var tabLabels={leaderboard:"Board",picks:"Picks",schedule:"Events",chat:"Chat 💬",shame:"Shame 💀",payments:"Pay 💰",stats:"Stats",admin:"Admin ⚙️"};
 
   return h("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#f8f7f4,#eae8e1)"}},
     // Header
@@ -451,7 +539,7 @@ function App(){
         h("span",{style:{fontSize:"18px"}},"⏰"),
         h("div",null,
           h("div",{style:{fontWeight:"600",fontSize:"13px",color:"#92400e"}},dl.text),
-          dl.time&&h("div",{style:{fontSize:"11px",color:"#b45309",marginTop:"2px"}},dl.time)
+          dl.time&&h("div",{style:{fontSize:"11px",color:"#b45309",marginTop:"2px"}},picksLocked?"🔒 Picks are LOCKED":"Picks lock at "+new Date(dl.revealsAt).toLocaleString())
         )
       ),
 
@@ -572,6 +660,67 @@ function App(){
           h("div",{style:{padding:"10px 14px",borderTop:"1px solid #e7e5e4",display:"flex",gap:"8px"}},
             h("input",{className:"if",style:{flex:1},placeholder:"Type a message...",value:ci,onChange:function(e){setCi(e.target.value)},onKeyDown:function(e){if(e.key==="Enter")sendChat()}}),
             h("button",{className:"bp",style:{width:"auto",padding:"10px 14px"},onClick:sendChat},"Send")
+          )
+        )
+      ),
+
+      // WALL OF SHAME
+      tab==="shame"&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
+        h("div",{style:{textAlign:"center",padding:"20px 16px"}},
+          h("div",{style:{fontSize:"48px",marginBottom:"8px"}},"💀"),
+          h("h2",{className:"sf",style:{fontSize:"22px",fontWeight:"900",color:"#1c1917"}},"Wall of Shame"),
+          h("p",{style:{color:"#78716c",fontSize:"13px",marginTop:"4px"}},"The worst picks of the 2026 season")
+        ),
+        // MC King
+        shame.mcKing.ct>0&&h("div",{className:"shame-card"},
+          h("div",{style:{display:"flex",alignItems:"center",gap:"12px"}},
+            h("div",{style:{fontSize:"36px"}},"👑💀"),
+            h("div",null,
+              h("div",{style:{fontSize:"11px",color:"#fcd34d",fontWeight:"600",textTransform:"uppercase",letterSpacing:"1px"}},"Missed Cut King"),
+              h("div",{className:"sf",style:{fontSize:"20px",fontWeight:"900",color:"white"}},shame.mcKing.nm),
+              h("div",{style:{fontSize:"13px",color:"#a8a29e"}},shame.mcKing.ct+" missed cuts this season")
+            )
+          )
+        ),
+        // Worst individual picks
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Worst Picks of the Season")),
+          h("div",null,shame.worst.map(function(w,i){
+            return h("div",{key:i,className:"gs",style:{display:"flex",alignItems:"center",gap:"10px",padding:"10px 14px"}},
+              h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#a8a29e",width:"18px",textAlign:"right"}},i+1),
+              h("div",{style:{fontSize:i<3?"20px":"16px"}},i===0?"🏆💀":i===1?"🥈💀":i===2?"🥉💀":"💀"),
+              h("div",{style:{flex:1,minWidth:0}},
+                h("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
+                  h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",background:mc(w.nm)}}),
+                  h("span",{style:{fontWeight:"600",fontSize:"13px"}},w.nm)
+                ),
+                h("div",{style:{fontSize:"11px",color:"#78716c"}},w.g," • ",w.tn)
+              ),
+              h("div",{className:"sf",style:{fontWeight:"700",fontSize:"17px",color:"#dc2626"}},w.s)
+            );
+          }))
+        ),
+        // Shame stats
+        h("div",{className:"cd",style:{padding:"14px"}},
+          h("h3",{className:"sf",style:{fontWeight:"700",marginBottom:"10px"}},"Shame Stats"),
+          h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}},
+            (function(){
+              var worstAvg={nm:"",avg:0};LB.forEach(function(m){var a=m.t/Math.max(m.bd.length,1);if(a>worstAvg.avg)worstAvg={nm:m.nm,avg:a}});
+              return h("div",{style:{background:"#fef2f2",borderRadius:"8px",padding:"10px",border:"1px solid #fecaca"}},
+                h("div",{style:{fontSize:"11px",color:"#dc2626",fontWeight:"500"}},"Worst Avg / Week"),
+                h("div",{className:"sf",style:{fontWeight:"700",color:"#7f1d1d",fontSize:"17px"}},worstAvg.nm),
+                h("div",{style:{fontSize:"13px",color:"#dc2626"}},worstAvg.avg.toFixed(1)+" avg")
+              );
+            })(),
+            (function(){
+              var most65=LB.map(function(m){return{nm:m.nm,ct:m.bd.filter(function(b){return b.p>=65}).length}}).sort(function(a,b){return b.ct-a.ct});
+              var total65=most65.reduce(function(a,m){return a+m.ct},0);
+              return h("div",{style:{background:"#1a1a2e",borderRadius:"8px",padding:"10px",border:"1px solid #2a2a4a",color:"white"}},
+                h("div",{style:{fontSize:"11px",color:"#fcd34d",fontWeight:"500"}},"Total Pool Bombs"),
+                h("div",{className:"sf",style:{fontWeight:"700",fontSize:"17px"}},total65+" missed cuts"),
+                h("div",{style:{fontSize:"13px",color:"#a8a29e"}},cT.length+" tournaments")
+              );
+            })()
           )
         )
       ),
@@ -901,10 +1050,49 @@ function App(){
               h("button",{className:"bs",onClick:function(){var np=Object.assign({},pay);np[n]=!pd;setPay(np);db.collection("payments").doc("status").set(np)}},pd?"Undo":"Mark Paid")
             );
           }))
+        ),
+
+        // Password Reset
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Reset Member Password")),
+          h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"10px"}},
+            h("select",{className:"if",value:resetMember,onChange:function(e){setResetMember(e.target.value)}},
+              h("option",{value:""},"Select member..."),ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n)})
+            ),
+            h("input",{className:"if",type:"text",placeholder:"New password (min 4 chars)",value:resetPw,onChange:function(e){setResetPw(e.target.value)}}),
+            h("button",{className:"bp",onClick:adminResetPassword},"Reset Password")
+          )
+        ),
+
+        // Export Data
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Backup & Export")),
+          h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"10px"}},
+            h("div",{style:{fontSize:"13px",color:"#57534e"}},"Download a full backup of all pool data as JSON."),
+            h("button",{className:"bp",onClick:adminExportData},"📥 Export All Data")
+          )
+        ),
+
+        // Audit Log
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Audit Log"),h("div",{style:{fontSize:"11px",color:"#a8a29e"}},auditLog.length+" entries")),
+          h("div",{style:{maxHeight:"400px",overflowY:"auto"},className:"sh"},
+            auditLog.length===0?h("div",{style:{padding:"16px",textAlign:"center",color:"#a8a29e",fontSize:"13px"}},"No activity logged yet."):
+            auditLog.map(function(log){
+              return h("div",{key:log.id,className:"gs",style:{padding:"10px 14px",display:"flex",flexDirection:"column",gap:"2px"}},
+                h("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},
+                  h("div",{style:{width:"6px",height:"6px",borderRadius:"50%",background:mc(log.user)}}),
+                  h("span",{style:{fontWeight:"600",fontSize:"12px"}},log.user),
+                  h("span",{style:{fontSize:"11px",color:"#a8a29e"}},ta(log.timestamp)),
+                  h("span",{className:"bg bg-d",style:{fontSize:"10px"}},log.action)
+                ),
+                log.details&&h("div",{style:{fontSize:"12px",color:"#78716c",paddingLeft:"14px"}},log.details)
+              );
+            })
+          )
         )
       )
     ),
-
     // MEMBER MODAL
     selM&&h("div",{style:{position:"fixed",inset:0,zIndex:50,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"},onClick:function(){setSelM(null)}},
       h("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,.4)",backdropFilter:"blur(4px)"}}),
