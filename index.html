@@ -184,7 +184,6 @@ function App(){
   var chatEnd=ur(null);
   var cT=TN.filter(function(t){return t.st==="completed"});
   var uT=TN.filter(function(t){return t.st==="upcoming"});
-  var ld=LB[0],last=LB[LB.length-1];
   var isAdmin=user===ADMIN;
   // Picks are hidden from non-admin users if a deadline exists and revealsAt hasn't passed
   var picksHidden=!isAdmin&&dl&&(dl.revealsAt?Date.now()<dl.revealsAt:true);
@@ -251,6 +250,9 @@ function App(){
       return{nm:n,t:t,bd:bd,ug:ug};
     }).sort(function(a,b){return a.t-b.t;});
   },[fbResults]);
+
+  var ld=LB[0]||{nm:"–",t:0,bd:[],ug:[]};
+  var last=LB[LB.length-1]||{nm:"–",t:0,bd:[],ug:[]};
 
   // Auth functions
   function doLogin(){
