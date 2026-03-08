@@ -113,10 +113,8 @@ var AP={
   genesis:{"Hudson":{g:"Jake Knapp",s:6},"Frank":{g:"Tommy Fleetwood",s:7},"Jeff":{g:"Si Woo Kim",s:34},"Sean":{g:"Tommy Fleetwood",s:7},"Kev Liska":{g:"Matt Fitzpatrick",s:24},"Briggs":{g:"Cameron Young",s:7},"Denis":{g:"Patrick Cantlay",s:37},"Luke":{g:"Tommy Fleetwood",s:7},"Mark":{g:"Tommy Fleetwood",s:7},"John":{g:"Patrick Cantlay",s:37},"Sandy":{g:"Tommy Fleetwood",s:7},"Phil":{g:"Matt Fitzpatrick",s:24},"Kev Mahon":{g:"Patrick Cantlay",s:37},"Adam Dory":{g:"Tommy Fleetwood",s:7},"Jim":{g:"Patrick Cantlay",s:37},"Bo":{g:"Cameron Young",s:7},"Kenyon":{g:"Tommy Fleetwood",s:7},"Cam":{g:"Patrick Cantlay",s:37},"Nick":{g:"Ludvig Aberg",s:20},"Kole":{g:"Hideki Matsuyama",s:28},"Kyle":{g:"Max Homa",s:37},"Dom":{g:"Sepp Straka",s:50}},
   cognizant:{"Hudson":{g:"Kieth Mitchell",s:6},"Frank":{g:"Ryan Gerard",s:23},"Jeff":{g:"Shane Lowry",s:2},"Sean":{g:"Ryan Gerard",s:23},"Kev Liska":{g:"Ryan Gerard",s:23},"Briggs":{g:"Ryan Gerard",s:23},"Denis":{g:"Nicolai Hojgaard",s:6},"Luke":{g:"Shane Lowry",s:2},"Mark":{g:"Nicolai Hojgaard",s:6},"John":{g:"Shane Lowry",s:6},"Sandy":{g:"Shane Lowry",s:2},"Phil":{g:"Ryan Gerard",s:23},"Kev Mahon":{g:"Ryan Gerard",s:23},"Adam Dory":{g:"Nicolai Hojgaard",s:6},"Jim":{g:"Rasmus Hojgaard",s:9},"Bo":{g:"Shane Lowry",s:2},"Kenyon":{g:"Michael Thorbjornsen",s:65},"Cam":{g:"Max McGreevy",s:40},"Nick":{g:"Ryan Gerard",s:23},"Kole":{g:"Shane Lowry",s:2},"Kyle":{g:"Shane Lowry",s:2},"Dom":{g:"Shane Lowry",s:2}}
 };
-// Official leaderboard totals from spreadsheet (source of truth)
-var OFFICIAL_TOTALS={"Adam Dory":91,"Jim":133,"Sandy":138,"Frank":152,"Sean":156,"Mark":157,"Kyle":166,"Phil":184,"Dom":189,"Kole":189,"Luke":190,"Jeff":192,"John":195,"Hudson":199,"Kev Liska":213,"Cam":214,"Briggs":221,"Nick":228,"Bo":248,"Kev Mahon":261,"Denis":262,"Kenyon":295};
-
-var LB=ME.map(function(n){var bd=[],ug=[];TN.filter(function(x){return x.st==="completed"}).forEach(function(x){var p=AP[x.id]&&AP[x.id][n];if(p){bd.push({tn:x.n,tid:x.id,g:p.g,p:p.s});ug.push(p.g);}});var t=OFFICIAL_TOTALS[n]||0;return{nm:n,t:t,bd:bd,ug:ug};}).sort(function(a,b){return a.t-b.t;});
+// Historical picks data (AP) used for seeding and display
+// Leaderboard is now computed dynamically from Firebase results
 function hc(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
 function mc(n){var c=["#2d6a4f","#9b2226","#005f73","#bb3e03","#3a0ca3","#7b2cbf","#006d77","#9c6644","#264653","#e76f51","#606c38","#bc4749","#0077b6","#d4a373","#6a040f","#023e8a","#7f5539","#4a4e69","#386641","#d62828","#1d3557","#e63946"];return c[hc(n)%c.length];}
 function ord(n){var s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
@@ -162,6 +160,8 @@ function App(){
   var _wp=us({}),wp=_wp[0],setWp=_wp[1];
   var _pay=us({}),pay=_pay[0],setPay=_pay[1];
   var _dl=us(null),dl=_dl[0],setDl=_dl[1];
+  var _fbResults=us({}),fbResults=_fbResults[0],setFbResults=_fbResults[1];
+  var _seeded=us(false),seeded=_seeded[0],setSeeded=_seeded[1];
   var _spm=us(false),spm=_spm[0],setSpm=_spm[1];
   var _pg=us(""),pg=_pg[0],setPg=_pg[1];
   var _pe=us(""),pe=_pe[0],setPe=_pe[1];
@@ -203,13 +203,54 @@ function App(){
     var u4=db.collection("settings").doc("deadline").onSnapshot(function(d){if(d.exists)setDl(d.data());});
     var u5=db.collection("settings").doc("activeTournament").onSnapshot(function(d){if(d.exists){setActT(d.data());}else{var nxt=TN.find(function(t){return t.st==="upcoming"});if(nxt)setActT({id:nxt.id,name:nxt.n});}});
     var u6=db.collection("auditLog").orderBy("timestamp","desc").limit(50).onSnapshot(function(s){var l=[];s.forEach(function(d){l.push(Object.assign({id:d.id},d.data()));});setAuditLog(l);});
-    return function(){u1();u2();u3();u4();u5();u6();};
+    // Results listener — powers the live leaderboard
+    var u7=db.collection("results").onSnapshot(function(s){var r={};s.forEach(function(d){r[d.id]=d.data();});setFbResults(r);});
+    return function(){u1();u2();u3();u4();u5();u6();u7();};
   },[screen]);
+
+  // Seed historical results into Firebase (runs once)
+  ue(function(){
+    if(screen!=="app"||seeded)return;
+    setSeeded(true);
+    db.collection("results").limit(1).get().then(function(snap){
+      if(!snap.empty)return; // Already seeded
+      var batch=db.batch();
+      TN.filter(function(t){return t.st==="completed"}).forEach(function(t){
+        ME.forEach(function(n){
+          var p=AP[t.id]&&AP[t.id][n];
+          if(p){
+            var ref=db.collection("results").doc(t.id+"_"+n);
+            batch.set(ref,{tournament:t.id,member:n,golfer:p.g,score:p.s,timestamp:Date.now()});
+          }
+        });
+      });
+      batch.commit().then(function(){console.log("Historical results seeded to Firebase")});
+    });
+  },[screen,seeded]);
 
   ue(function(){if(chatEnd.current)chatEnd.current.scrollIntoView({behavior:"smooth"});},[msgs]);
 
   // Auto-lock check: if deadline has revealsAt and it's passed, picks are auto-locked
   var picksLocked=dl&&dl.revealsAt&&Date.now()>dl.revealsAt;
+
+  // Dynamic leaderboard computed from Firebase results
+  var LB=um(function(){
+    return ME.map(function(n){
+      var t=0,bd=[],ug=[];
+      // Get all results for this member from Firebase
+      Object.entries(fbResults).forEach(function(e){
+        var r=e[1];
+        if(r.member===n){
+          var tn=TN.find(function(x){return x.id===r.tournament});
+          var tnName=tn?tn.n:r.tournament;
+          t+=r.score;
+          bd.push({tn:tnName,tid:r.tournament,g:r.golfer,p:r.score});
+          if(ug.indexOf(r.golfer)<0)ug.push(r.golfer);
+        }
+      });
+      return{nm:n,t:t,bd:bd,ug:ug};
+    }).sort(function(a,b){return a.t-b.t;});
+  },[fbResults]);
 
   // Auth functions
   function doLogin(){
@@ -275,7 +316,7 @@ function App(){
     var u=m?m.ug.slice():[];
     Object.values(wp).forEach(function(p){if(p.member===user&&u.indexOf(p.golfer)<0)u.push(p.golfer);});
     return u;
-  },[user,wp]);
+  },[user,wp,LB]);
 
   // Autocomplete suggestions
   var acSuggestions=um(function(){
@@ -301,18 +342,31 @@ function App(){
 
   var stats=um(function(){
     var gp={},gs={};
-    cT.forEach(function(t){Object.entries(AP[t.id]||{}).forEach(function(e){gp[e[1].g]=(gp[e[1].g]||0)+1;if(!gs[e[1].g])gs[e[1].g]=[];gs[e[1].g].push(e[1].s);});});
+    // Build golfer stats from Firebase results
+    Object.values(fbResults).forEach(function(r){
+      gp[r.golfer]=(gp[r.golfer]||0)+1;
+      if(!gs[r.golfer])gs[r.golfer]=[];
+      gs[r.golfer].push(r.score);
+    });
 
     // Most picked golfers
     var mp=Object.entries(gp).sort(function(a,b){return b[1]-a[1]}).slice(0,10);
     // Best avg golfers
     var ba=Object.entries(gs).filter(function(e){return e[1].length>=2}).map(function(e){return{nm:e[0],avg:e[1].reduce(function(a,b){return a+b},0)/e[1].length,ct:e[1].length}}).sort(function(a,b){return a.avg-b.avg}).slice(0,8);
 
+    // Get unique tournaments that have results
+    var tournWithResults={};
+    Object.values(fbResults).forEach(function(r){tournWithResults[r.tournament]=true});
+    var resultTournIds=Object.keys(tournWithResults);
+
     // Weekly winners (lowest score each week)
-    var ww=cT.map(function(t){
-      var best={nm:"",s:999};
-      ME.forEach(function(n){var p=AP[t.id]&&AP[t.id][n];if(p&&p.s<best.s)best={nm:n,s:p.s,g:p.g};});
-      return{tn:t.n,tid:t.id,winner:best.nm,score:best.s,golfer:best.g};
+    var ww=resultTournIds.map(function(tid){
+      var tn=TN.find(function(x){return x.id===tid});
+      var best={nm:"",s:999,g:""};
+      Object.values(fbResults).forEach(function(r){
+        if(r.tournament===tid&&r.score<best.s)best={nm:r.member,s:r.score,g:r.golfer};
+      });
+      return{tn:tn?tn.n:tid,tid:tid,winner:best.nm,score:best.s,golfer:best.g};
     });
 
     // Most MCs by member
@@ -320,14 +374,15 @@ function App(){
 
     // Field avg per tournament, then luck score per member
     var fieldAvg={};
-    cT.forEach(function(t){
-      var scores=[];ME.forEach(function(n){var p=AP[t.id]&&AP[t.id][n];if(p)scores.push(p.s);});
-      fieldAvg[t.id]=scores.length?scores.reduce(function(a,b){return a+b},0)/scores.length:0;
+    resultTournIds.forEach(function(tid){
+      var scores=[];
+      Object.values(fbResults).forEach(function(r){if(r.tournament===tid)scores.push(r.score)});
+      fieldAvg[tid]=scores.length?scores.reduce(function(a,b){return a+b},0)/scores.length:0;
     });
     var luck=LB.map(function(m){
       if(m.bd.length===0)return{nm:m.nm,luck:0,avg:0,fAvg:0};
       var memberAvg=m.t/m.bd.length;
-      var memberFieldAvg=m.bd.reduce(function(a,b){return a+fieldAvg[b.tid]},0)/m.bd.length;
+      var memberFieldAvg=m.bd.reduce(function(a,b){return a+(fieldAvg[b.tid]||0)},0)/m.bd.length;
       return{nm:m.nm,luck:memberFieldAvg-memberAvg,avg:memberAvg,fAvg:memberFieldAvg};
     }).sort(function(a,b){return b.luck-a.luck});
 
@@ -337,7 +392,7 @@ function App(){
       var last3=m.bd.slice(-3);
       var avgLast3=last3.reduce(function(a,b){return a+b.p},0)/last3.length;
       var avgAll=m.t/m.bd.length;
-      var trend=avgAll-avgLast3; // positive = hot (recent better than avg)
+      var trend=avgAll-avgLast3;
       return{nm:m.nm,trend:trend,avgR:avgLast3,avgA:avgAll,last3:last3};
     }).filter(Boolean).sort(function(a,b){return b.trend-a.trend});
 
@@ -350,7 +405,7 @@ function App(){
     }).sort(function(a,b){return a.pw-b.pw});
 
     return{mp:mp,ba:ba,ww:ww,mcs:mcs,luck:luck,streaks:streaks,pr:pr};
-  },[]);
+  },[fbResults,LB]);
 
   // Admin functions
   function adminRecordResult(){
@@ -408,7 +463,7 @@ function App(){
 
   // Export all data
   function adminExportData(){
-    var data={leaderboard:OFFICIAL_TOTALS,picks:AP,firebasePicks:wp,payments:pay,members:ME,tournaments:TN};
+    var data={leaderboard:LB,results:fbResults,firebasePicks:wp,payments:pay,members:ME,tournaments:TN};
     var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
     var url=URL.createObjectURL(blob);
     var a=document.createElement("a");a.href=url;a.download="huds-golf-pool-backup-"+new Date().toISOString().slice(0,10)+".json";
@@ -429,7 +484,7 @@ function App(){
     var mcKing={nm:"",ct:0};
     LB.forEach(function(m){var c=m.bd.filter(function(b){return b.p>=65}).length;if(c>mcKing.ct)mcKing={nm:m.nm,ct:c};});
     return{worst:worst.slice(0,15),mcKing:mcKing};
-  },[]);
+  },[LB]);
 
   // ═══ LOGIN SCREEN ═══
   if(screen==="login"){
