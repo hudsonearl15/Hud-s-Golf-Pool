@@ -997,9 +997,28 @@ function App(){
         h("div",{className:"cd"},
           h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Record Tournament Result")),
           h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
-            h("select",{className:"if",value:adT,onChange:function(e){setAdT(e.target.value)}},h("option",{value:""},"Select tournament..."),TN.map(function(t){return h("option",{key:t.id,value:t.id},t.n+(t.mj?" (Major)":""))})),
-            h("select",{className:"if",value:adM,onChange:function(e){setAdM(e.target.value)}},h("option",{value:""},"Select member..."),ME.slice().sort().map(function(n){return h("option",{key:n,value:n},n)})),
-            h("input",{className:"if",placeholder:"Golfer name",value:adG,onChange:function(e){setAdG(e.target.value)}}),
+            h("select",{className:"if",value:adT,onChange:function(e){setAdT(e.target.value);setAdM("");setAdG("");setAdS("")}},h("option",{value:""},"Select tournament..."),TN.map(function(t){return h("option",{key:t.id,value:t.id},t.n+(t.mj?" (Major)":""))})),
+            h("select",{className:"if",value:adM,onChange:function(e){
+              setAdM(e.target.value);
+              // Auto-fill golfer from their submitted pick
+              var pickKey=adT+"_"+e.target.value;
+              var pick=wp[pickKey];
+              if(pick){setAdG(pick.golfer);}else{setAdG("");}
+            }},h("option",{value:""},"Select member..."),ME.slice().sort().map(function(n){
+              // Show their pick next to their name if available
+              var pickKey=adT+"_"+n;
+              var pick=wp[pickKey];
+              return h("option",{key:n,value:n},n+(pick?" — "+pick.golfer:""));
+            })),
+            // Show auto-filled golfer with indicator
+            adT&&adM&&h("div",{style:{padding:"10px 14px",borderRadius:"8px",background:adG?"#ecfdf5":"#fef2f2",border:adG?"1px solid #a7f3d0":"1px solid #fecaca",display:"flex",alignItems:"center",gap:"8px"}},
+              h("span",{style:{fontSize:"14px"}},adG?"⛳":"⚠️"),
+              h("div",null,
+                h("div",{style:{fontSize:"12px",fontWeight:"600",color:adG?"#047857":"#dc2626"}},adG?"Golfer: "+adG:"No pick submitted for this tournament"),
+                !adG&&h("div",{style:{fontSize:"11px",color:"#78716c",marginTop:"2px"}},"You can manually enter a golfer below")
+              )
+            ),
+            h("input",{className:"if",placeholder:"Golfer name (auto-filled from pick)",value:adG,onChange:function(e){setAdG(e.target.value)}}),
             h("input",{className:"if",type:"number",placeholder:"Finishing position (score)",value:adS,onChange:function(e){setAdS(e.target.value)}}),
             h("button",{className:"bp",onClick:adminRecordResult},"Record Result")
           )
