@@ -113,8 +113,11 @@ var AP={
   genesis:{"Hudson":{g:"Jake Knapp",s:6},"Frank":{g:"Tommy Fleetwood",s:7},"Jeff":{g:"Si Woo Kim",s:34},"Sean":{g:"Tommy Fleetwood",s:7},"Kev Liska":{g:"Matt Fitzpatrick",s:24},"Briggs":{g:"Cameron Young",s:7},"Denis":{g:"Patrick Cantlay",s:37},"Luke":{g:"Tommy Fleetwood",s:7},"Mark":{g:"Tommy Fleetwood",s:7},"John":{g:"Patrick Cantlay",s:37},"Sandy":{g:"Tommy Fleetwood",s:7},"Phil":{g:"Matt Fitzpatrick",s:24},"Kev Mahon":{g:"Patrick Cantlay",s:37},"Adam Dory":{g:"Tommy Fleetwood",s:7},"Jim":{g:"Patrick Cantlay",s:37},"Bo":{g:"Cameron Young",s:7},"Kenyon":{g:"Tommy Fleetwood",s:7},"Cam":{g:"Patrick Cantlay",s:37},"Nick":{g:"Ludvig Aberg",s:20},"Kole":{g:"Hideki Matsuyama",s:28},"Kyle":{g:"Max Homa",s:37},"Dom":{g:"Sepp Straka",s:50}},
   cognizant:{"Hudson":{g:"Kieth Mitchell",s:6},"Frank":{g:"Ryan Gerard",s:23},"Jeff":{g:"Shane Lowry",s:2},"Sean":{g:"Ryan Gerard",s:23},"Kev Liska":{g:"Ryan Gerard",s:23},"Briggs":{g:"Ryan Gerard",s:23},"Denis":{g:"Nicolai Hojgaard",s:6},"Luke":{g:"Shane Lowry",s:2},"Mark":{g:"Nicolai Hojgaard",s:6},"John":{g:"Shane Lowry",s:6},"Sandy":{g:"Shane Lowry",s:2},"Phil":{g:"Ryan Gerard",s:23},"Kev Mahon":{g:"Ryan Gerard",s:23},"Adam Dory":{g:"Nicolai Hojgaard",s:6},"Jim":{g:"Rasmus Hojgaard",s:9},"Bo":{g:"Shane Lowry",s:2},"Kenyon":{g:"Michael Thorbjornsen",s:65},"Cam":{g:"Max McGreevy",s:40},"Nick":{g:"Ryan Gerard",s:23},"Kole":{g:"Shane Lowry",s:2},"Kyle":{g:"Shane Lowry",s:2},"Dom":{g:"Shane Lowry",s:2}}
 };
-// Historical picks data (AP) used for seeding and display
-// Leaderboard is now computed dynamically from Firebase results
+// Official leaderboard base totals (through Cognizant Classic — 7 completed tournaments)
+var BASE_TOTALS={"Adam Dory":91,"Jim":133,"Sandy":138,"Frank":152,"Sean":156,"Mark":157,"Kyle":166,"Phil":184,"Dom":189,"Kole":189,"Luke":190,"Jeff":192,"John":195,"Hudson":199,"Kev Liska":213,"Cam":214,"Briggs":221,"Nick":228,"Bo":248,"Kev Mahon":261,"Denis":262,"Kenyon":295};
+// Tournament IDs already included in BASE_TOTALS — don't double-count
+var BASE_TOURNS={"sony":1,"amex":1,"farmers":1,"wm":1,"pebble":1,"genesis":1,"cognizant":1};
+
 function hc(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
 function mc(n){var c=["#2d6a4f","#9b2226","#005f73","#bb3e03","#3a0ca3","#7b2cbf","#006d77","#9c6644","#264653","#e76f51","#606c38","#bc4749","#0077b6","#d4a373","#6a040f","#023e8a","#7f5539","#4a4e69","#386641","#d62828","#1d3557","#e63946"];return c[hc(n)%c.length];}
 function ord(n){var s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
@@ -161,7 +164,6 @@ function App(){
   var _pay=us({}),pay=_pay[0],setPay=_pay[1];
   var _dl=us(null),dl=_dl[0],setDl=_dl[1];
   var _fbResults=us({}),fbResults=_fbResults[0],setFbResults=_fbResults[1];
-  var _seeded=us(false),seeded=_seeded[0],setSeeded=_seeded[1];
   var _spm=us(false),spm=_spm[0],setSpm=_spm[1];
   var _pg=us(""),pg=_pg[0],setPg=_pg[1];
   var _pe=us(""),pe=_pe[0],setPe=_pe[1];
@@ -207,43 +209,29 @@ function App(){
     return function(){u1();u2();u3();u4();u5();u6();u7();};
   },[screen]);
 
-  // Seed historical results into Firebase (runs once)
-  ue(function(){
-    if(screen!=="app"||seeded)return;
-    setSeeded(true);
-    db.collection("results").limit(1).get().then(function(snap){
-      if(!snap.empty)return; // Already seeded
-      var batch=db.batch();
-      TN.filter(function(t){return t.st==="completed"}).forEach(function(t){
-        ME.forEach(function(n){
-          var p=AP[t.id]&&AP[t.id][n];
-          if(p){
-            var ref=db.collection("results").doc(t.id+"_"+n);
-            batch.set(ref,{tournament:t.id,member:n,golfer:p.g,score:p.s,timestamp:Date.now()});
-          }
-        });
-      });
-      batch.commit().then(function(){console.log("Historical results seeded to Firebase")});
-    });
-  },[screen,seeded]);
-
   ue(function(){if(chatEnd.current)chatEnd.current.scrollIntoView({behavior:"smooth"});},[msgs]);
 
   // Auto-lock check: if deadline has revealsAt and it's passed, picks are auto-locked
   var picksLocked=dl&&dl.revealsAt&&Date.now()>dl.revealsAt;
 
-  // Dynamic leaderboard computed from Firebase results
+  // Leaderboard: BASE_TOTALS (first 7 tournaments) + new Firebase results (tournament 8+)
   var LB=um(function(){
     return ME.map(function(n){
-      var t=0,bd=[],ug=[];
-      // Get all results for this member from Firebase
+      var t=BASE_TOTALS[n]||0;
+      var bd=[];
+      var ug=[];
+      // Historical golfers used (from AP) for pick blocking
+      TN.filter(function(x){return x.st==="completed"}).forEach(function(x){
+        var p=AP[x.id]&&AP[x.id][n];
+        if(p){bd.push({tn:x.n,tid:x.id,g:p.g,p:p.s});if(ug.indexOf(p.g)<0)ug.push(p.g);}
+      });
+      // New Firebase results (tournaments NOT in base)
       Object.entries(fbResults).forEach(function(e){
         var r=e[1];
-        if(r.member===n){
+        if(r.member===n&&!BASE_TOURNS[r.tournament]){
           var tn=TN.find(function(x){return x.id===r.tournament});
-          var tnName=tn?tn.n:r.tournament;
           t+=r.score;
-          bd.push({tn:tnName,tid:r.tournament,g:r.golfer,p:r.score});
+          bd.push({tn:tn?tn.n:r.tournament,tid:r.tournament,g:r.golfer,p:r.score});
           if(ug.indexOf(r.golfer)<0)ug.push(r.golfer);
         }
       });
@@ -1052,32 +1040,44 @@ function App(){
 
         // Record Result
         h("div",{className:"cd"},
-          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Record Tournament Result")),
+          h("div",{className:"ch"},h("h2",{className:"sf",style:{fontWeight:"700"}},"Record / Edit Results")),
           h("div",{style:{padding:"16px",display:"flex",flexDirection:"column",gap:"12px"}},
             h("select",{className:"if",value:adT,onChange:function(e){setAdT(e.target.value);setAdM("");setAdG("");setAdS("")}},h("option",{value:""},"Select tournament..."),TN.map(function(t){return h("option",{key:t.id,value:t.id},t.n+(t.mj?" (Major)":""))})),
             h("select",{className:"if",value:adM,onChange:function(e){
               setAdM(e.target.value);
-              // Auto-fill golfer from their submitted pick
-              var pickKey=adT+"_"+e.target.value;
-              var pick=wp[pickKey];
-              if(pick){setAdG(pick.golfer);}else{setAdG("");}
+              var resultKey=adT+"_"+e.target.value;
+              // Auto-fill from existing Firebase result first, then fall back to pick
+              var existing=fbResults[resultKey];
+              if(existing){setAdG(existing.golfer);setAdS(String(existing.score));}
+              else{var pick=wp[resultKey];if(pick){setAdG(pick.golfer);}else{setAdG("");}setAdS("");}
             }},h("option",{value:""},"Select member..."),ME.slice().sort().map(function(n){
-              // Show their pick next to their name if available
-              var pickKey=adT+"_"+n;
-              var pick=wp[pickKey];
-              return h("option",{key:n,value:n},n+(pick?" — "+pick.golfer:""));
+              var resultKey=adT+"_"+n;
+              var existing=fbResults[resultKey];
+              var pick=wp[resultKey];
+              var label=n;
+              if(existing)label+=" — "+existing.golfer+" ("+existing.score+" pts)";
+              else if(pick)label+=" — "+pick.golfer+" (no score yet)";
+              return h("option",{key:n,value:n},label);
             })),
-            // Show auto-filled golfer with indicator
-            adT&&adM&&h("div",{style:{padding:"10px 14px",borderRadius:"8px",background:adG?"#ecfdf5":"#fef2f2",border:adG?"1px solid #a7f3d0":"1px solid #fecaca",display:"flex",alignItems:"center",gap:"8px"}},
-              h("span",{style:{fontSize:"14px"}},adG?"⛳":"⚠️"),
-              h("div",null,
-                h("div",{style:{fontSize:"12px",fontWeight:"600",color:adG?"#047857":"#dc2626"}},adG?"Golfer: "+adG:"No pick submitted for this tournament"),
-                !adG&&h("div",{style:{fontSize:"11px",color:"#78716c",marginTop:"2px"}},"You can manually enter a golfer below")
-              )
-            ),
-            h("input",{className:"if",placeholder:"Golfer name (auto-filled from pick)",value:adG,onChange:function(e){setAdG(e.target.value)}}),
+            // Show current result status
+            adT&&adM&&(function(){
+              var resultKey=adT+"_"+adM;
+              var existing=fbResults[resultKey];
+              if(existing)return h("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"#fffbeb",border:"1px solid #fde68a",display:"flex",alignItems:"center",gap:"8px"}},
+                h("span",{style:{fontSize:"14px"}},"📝"),
+                h("div",null,
+                  h("div",{style:{fontSize:"12px",fontWeight:"600",color:"#92400e"}},"Current: "+existing.golfer+" — "+existing.score+" pts"),
+                  h("div",{style:{fontSize:"11px",color:"#b45309",marginTop:"2px"}},"Edit the fields below and click 'Save' to update")
+                )
+              );
+              return adG?h("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"#ecfdf5",border:"1px solid #a7f3d0",display:"flex",alignItems:"center",gap:"8px"}},
+                h("span",{style:{fontSize:"14px"}},"⛳"),
+                h("div",{style:{fontSize:"12px",fontWeight:"600",color:"#047857"}},"New entry: "+adG)
+              ):h("div",{style:{padding:"10px 14px",borderRadius:"8px",background:"#fef2f2",border:"1px solid #fecaca",fontSize:"12px",color:"#dc2626"}},"⚠️ No pick or result found for this member/tournament");
+            })(),
+            h("input",{className:"if",placeholder:"Golfer name",value:adG,onChange:function(e){setAdG(e.target.value)}}),
             h("input",{className:"if",type:"number",placeholder:"Finishing position (score)",value:adS,onChange:function(e){setAdS(e.target.value)}}),
-            h("button",{className:"bp",onClick:adminRecordResult},"Record Result")
+            h("button",{className:"bp",onClick:adminRecordResult},fbResults[adT+"_"+adM]?"Save Changes":"Record Result")
           )
         ),
 
