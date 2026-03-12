@@ -192,7 +192,7 @@ function App(){
 
   // Check saved session
   ue(function(){
-    try{var s=sessionStorage.getItem("gp-user");if(s){setUser(s);setScreen("app");}}catch(e){}
+    try{var s=localStorage.getItem("gp-user");if(s){setUser(s);setScreen("app");}}catch(e){}
   },[]);
 
   // Firebase listeners
@@ -251,7 +251,7 @@ function App(){
       if(!doc.exists){setErr("No account found. Click 'Create Account' to register.");return;}
       if(doc.data().pw!==pw){setErr("Incorrect password");return;}
       setUser(selName);setScreen("app");setPw("");
-      try{sessionStorage.setItem("gp-user",selName);}catch(e){}
+      try{localStorage.setItem("gp-user",selName);}catch(e){}
     }).catch(function(e){setLoading(false);setErr("Error: "+e.message);});
   }
 
@@ -265,11 +265,11 @@ function App(){
       return db.collection("users").doc(selName).set({pw:pw,created:Date.now()});
     }).then(function(){
       setLoading(false);setUser(selName);setScreen("app");setPw("");setPw2("");
-      try{sessionStorage.setItem("gp-user",selName);}catch(e){}
+      try{localStorage.setItem("gp-user",selName);}catch(e){}
     }).catch(function(e){setLoading(false);setErr("Error: "+e.message);});
   }
 
-  function logout(){setUser(null);setScreen("login");setTab("leaderboard");try{sessionStorage.removeItem("gp-user");}catch(e){}}
+  function logout(){setUser(null);setScreen("login");setTab("leaderboard");try{localStorage.removeItem("gp-user");}catch(e){}}
 
   // Audit logger
   function logAudit(action,details){
