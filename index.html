@@ -780,13 +780,13 @@ function App(){
               return h("div",null,
                 // Pool members' golfers highlighted at top
                 (function(){
-                  var poolPlayers=liveData.players.filter(function(p){return poolGolfers[p.name.toLowerCase()]});
+                  var poolPlayers=liveData.players.filter(function(p){return poolGolfers[String(p.name||"").toLowerCase()]});
                   if(poolPlayers.length===0)return null;
                   return h("div",{style:{padding:"12px 16px",background:"linear-gradient(135deg,#ecfdf5,#d1fae5)",borderBottom:"2px solid #a7f3d0"}},
                     h("div",{style:{fontSize:"11px",fontWeight:"600",color:"#047857",marginBottom:"8px",textTransform:"uppercase",letterSpacing:"1px"}},"🏌️ Your Pool's Golfers"),
                     h("div",{style:{display:"flex",flexDirection:"column",gap:"4px"}},
                       poolPlayers.map(function(p){
-                        var member=poolGolfers[p.name.toLowerCase()];
+                        var member=poolGolfers[String(p.name||"").toLowerCase()];
                         return h("div",{key:p.name,style:{display:"flex",alignItems:"center",gap:"8px",padding:"6px 10px",background:"white",borderRadius:"6px",border:"1px solid #a7f3d0"}},
                           h("div",{style:{fontWeight:"700",fontSize:"14px",color:"#047857",minWidth:"32px"}},p.pos),
                           h("div",{style:{flex:1}},
@@ -794,7 +794,7 @@ function App(){
                             h("div",{style:{fontSize:"11px",color:"#047857"}},"Picked by ",h("strong",null,member))
                           ),
                           h("div",{style:{textAlign:"right"}},
-                            h("div",{style:{fontWeight:"700",fontSize:"14px",color:p.score.indexOf("-")>=0?"#dc2626":p.score==="E"?"#44403c":"#0369a1"}},p.score),
+                            h("div",{style:{fontWeight:"700",fontSize:"14px",color:String(p.score||"").indexOf("-")>=0?"#dc2626":p.score==="E"?"#44403c":"#0369a1"}},p.score),
                             h("div",{style:{fontSize:"10px",color:"#a8a29e"}},p.thru)
                           )
                         );
@@ -804,16 +804,16 @@ function App(){
                 })(),
                 // Full leaderboard
                 liveData.players.slice(0,50).map(function(p,i){
-                  var isPool=!!poolGolfers[p.name.toLowerCase()];
+                  var isPool=!!poolGolfers[String(p.name||"").toLowerCase()];
                   return h("div",{key:p.name+i,className:"gs",style:{display:"flex",alignItems:"center",gap:"8px",padding:"9px 14px",background:isPool?"#fffbeb":"transparent",borderLeft:isPool?"3px solid #fcd34d":"3px solid transparent"}},
                     h("div",{style:{fontWeight:"700",fontSize:"12px",color:"#78716c",minWidth:"28px",textAlign:"right"}},p.pos),
                     h("div",{style:{flex:1,minWidth:0}},
-                      h("div",{style:{fontWeight:isPool?"700":"500",fontSize:"13px",color:isPool?"#92400e":"#292524"}},p.name,isPool&&h("span",{style:{fontSize:"10px",color:"#b45309",marginLeft:"6px"}},"("+poolGolfers[p.name.toLowerCase()]+")")),
+                      h("div",{style:{fontWeight:isPool?"700":"500",fontSize:"13px",color:isPool?"#92400e":"#292524"}},p.name,isPool&&h("span",{style:{fontSize:"10px",color:"#b45309",marginLeft:"6px"}},"("+poolGolfers[String(p.name||"").toLowerCase()]+")")),
                       h("div",{style:{fontSize:"10px",color:"#a8a29e"}},p.thru)
                     ),
                     h("div",{style:{display:"flex",gap:"12px",alignItems:"center"}},
                       h("div",{style:{fontSize:"11px",color:"#a8a29e",minWidth:"30px",textAlign:"right"}},"Today: "+p.today),
-                      h("div",{style:{fontWeight:"700",fontSize:"14px",minWidth:"36px",textAlign:"right",color:p.score.indexOf("-")>=0?"#dc2626":p.score==="E"?"#44403c":"#0369a1"}},p.score)
+                      h("div",{style:{fontWeight:"700",fontSize:"14px",minWidth:"36px",textAlign:"right",color:String(p.score||"").indexOf("-")>=0?"#dc2626":p.score==="E"?"#44403c":"#0369a1"}},p.score)
                     )
                   );
                 })
