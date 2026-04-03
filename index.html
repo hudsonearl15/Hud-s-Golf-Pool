@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -344,10 +343,10 @@ function App(){
       });
   }
 
-  // Auto-fetch when live tab is opened
-  ue(function(){
-    if(tab==="live"&&!liveData&&!liveLoading)fetchLiveLeaderboard();
-  },[tab]);
+  // Live leaderboard disabled for now - auto-fetch off
+  //ue(function(){
+  //  if(tab==="live"&&!liveData&&!liveLoading)fetchLiveLeaderboard();
+  //},[tab]);
 
   // Audit logger
   function logAudit(action,details){
@@ -621,9 +620,9 @@ function App(){
   }
 
   // ═══ MAIN APP ═══
-  var tabList=["leaderboard","picks","live","schedule","chat","shame","payments","stats"];
+  var tabList=["leaderboard","picks","schedule","chat","shame","payments","stats"];
   if(isAdmin)tabList.push("admin");
-  var tabLabels={leaderboard:"Board",picks:"Picks",live:"Live ⛳",schedule:"Events",chat:"Chat 💬",shame:"Shame 💀",payments:"Pay 💰",stats:"Stats",admin:"Admin ⚙️"};
+  var tabLabels={leaderboard:"Board",picks:"Picks",schedule:"Events",chat:"Chat 💬",shame:"Shame 💀",payments:"Pay 💰",stats:"Stats",admin:"Admin ⚙️"};
 
   return h("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#f8f7f4,#eae8e1)"}},
     // Header
