@@ -182,6 +182,9 @@ function App(){
   var _h2h1=us(""),h2h1=_h2h1[0],setH2h1=_h2h1[1];
   var _h2h2=us(""),h2h2=_h2h2[0],setH2h2=_h2h2[1];
   var _alog=us([]),auditLog=_alog[0],setAuditLog=_alog[1];
+  var _liveData=us(null),liveData=_liveData[0],setLiveData=_liveData[1];
+  var _liveLoading=us(false),liveLoading=_liveLoading[0],setLiveLoading=_liveLoading[1];
+  var _liveError=us(""),liveError=_liveError[0],setLiveError=_liveError[1];
 
   var chatEnd=ur(null);
   var cT=TN.filter(function(t){return t.st==="completed"});
@@ -270,6 +273,77 @@ function App(){
   }
 
   function logout(){setUser(null);setScreen("login");setTab("leaderboard");try{localStorage.removeItem("gp-user");}catch(e){}}
+
+  // Live tournament leaderboard fetch
+  function fetchLiveLeaderboard(){
+    setLiveLoading(true);setLiveError("");
+    // ESPN public API (CORS-friendly)
+    fetch("https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard")
+      .then(function(r){
+        if(!r.ok)throw new Error("HTTP "+r.status);
+        return r.json();
+      })
+      .then(function(data){
+        setLiveLoading(false);
+        if(!data||!data.events||data.events.length===0){setLiveError("No active tournament found. Check back when a tournament is underway.");return;}
+        var ev=data.events[0];
+        var comp=ev.competitions&&ev.competitions[0];
+        var players=[];
+        if(comp&&comp.competitors){
+          comp.competitors.forEach(function(c){
+            var name=c.athlete?c.athlete.displayName:"Unknown";
+            var pos=c.status&&c.status.position?c.status.position.displayName:(c.sortOrder?String(c.sortOrder):"–");
+            var score=c.score?c.score.displayValue:"E";
+            var today="–";
+            if(c.linescores&&c.linescores.length>0){
+              var lastRound=c.linescores[c.linescores.length-1];
+              today=lastRound.displayValue||lastRound.value||"–";
+            }
+            var thru=c.status?c.status.displayValue||c.status.detail||"":"";
+            players.push({name:name,pos:pos,score:score,today:today,thru:thru});
+          });
+        }
+        // Sort by position
+        players.sort(function(a,b){
+          var pa=parseInt(a.pos)||999;var pb=parseInt(b.pos)||999;return pa-pb;
+        });
+        var statusText="";
+        if(ev.status&&ev.status.type)statusText=ev.status.type.detail||ev.status.type.description||"";
+        setLiveData({name:ev.name||"Tournament",status:statusText,players:players,date:ev.date||""});
+      })
+      .catch(function(e){
+        setLiveLoading(false);
+        // Try alternate endpoint
+        fetch("https://site.api.espn.com/apis/site/v2/sports/golf/pga/leaderboard")
+          .then(function(r){return r.json()})
+          .then(function(data){
+            if(!data||!data.events||data.events.length===0){setLiveError("No active tournament right now. Scores appear during tournament weeks (Thu–Sun).");return;}
+            var ev=data.events[0];
+            var comp=ev.competitions&&ev.competitions[0];
+            var players=[];
+            if(comp&&comp.competitors){
+              comp.competitors.forEach(function(c){
+                players.push({
+                  name:c.athlete?c.athlete.displayName:"Unknown",
+                  pos:c.status&&c.status.position?c.status.position.displayName:String(c.sortOrder||"–"),
+                  score:c.score?c.score.displayValue:"E",
+                  today:"–",
+                  thru:c.status?c.status.displayValue||"":""
+                });
+              });
+            }
+            players.sort(function(a,b){var pa=parseInt(a.pos)||999;var pb=parseInt(b.pos)||999;return pa-pb;});
+            var statusText=ev.status&&ev.status.type?ev.status.type.detail||ev.status.type.description||"":"";
+            setLiveData({name:ev.name||"Tournament",status:statusText,players:players,date:ev.date||""});
+          })
+          .catch(function(){setLiveError("Couldn't load scores. Live leaderboard is available during tournament weeks (Thu–Sun).");});
+      });
+  }
+
+  // Auto-fetch when live tab is opened
+  ue(function(){
+    if(tab==="live"&&!liveData&&!liveLoading)fetchLiveLeaderboard();
+  },[tab]);
 
   // Audit logger
   function logAudit(action,details){
@@ -543,9 +617,9 @@ function App(){
   }
 
   // ═══ MAIN APP ═══
-  var tabList=["leaderboard","picks","schedule","chat","shame","payments","stats"];
+  var tabList=["leaderboard","picks","live","schedule","chat","shame","payments","stats"];
   if(isAdmin)tabList.push("admin");
-  var tabLabels={leaderboard:"Board",picks:"Picks",schedule:"Events",chat:"Chat 💬",shame:"Shame 💀",payments:"Pay 💰",stats:"Stats",admin:"Admin ⚙️"};
+  var tabLabels={leaderboard:"Board",picks:"Picks",live:"Live ⛳",schedule:"Events",chat:"Chat 💬",shame:"Shame 💀",payments:"Pay 💰",stats:"Stats",admin:"Admin ⚙️"};
 
   return h("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#f8f7f4,#eae8e1)"}},
     // Header
@@ -671,6 +745,79 @@ function App(){
             }))
           );
         })
+      ),
+
+      // LIVE TOURNAMENT LEADERBOARD
+      tab==="live"&&h("div",{className:"fu",style:{display:"flex",flexDirection:"column",gap:"14px"}},
+        h("div",{className:"cd"},
+          h("div",{className:"ch"},
+            h("div",null,
+              h("h2",{className:"sf",style:{fontWeight:"700"}},liveData?liveData.name:"PGA Tour Live ⛳"),
+              liveData&&h("div",{style:{fontSize:"11px",color:liveData.status==="In Progress"?"#047857":"#a8a29e",fontWeight:"500",marginTop:"2px"}},liveData.status)
+            ),
+            h("button",{className:"bs",onClick:fetchLiveLeaderboard,disabled:liveLoading},liveLoading?"Loading...":"↻ Refresh")
+          ),
+          liveLoading&&!liveData&&h("div",{style:{padding:"40px",textAlign:"center"}},
+            h("div",{style:{fontSize:"24px",marginBottom:"8px",animation:"pulse 1.5s infinite"}},"⛳"),
+            h("div",{style:{color:"#a8a29e",fontSize:"14px"}},"Loading live scores...")
+          ),
+          liveError&&h("div",{style:{padding:"20px",textAlign:"center",color:"#a8a29e",fontSize:"14px"}},liveError),
+          liveData&&liveData.players.length>0&&h("div",null,
+            // Highlight pool members' golfers
+            (function(){
+              // Find which golfers our pool members picked for the active tournament
+              var poolGolfers={};
+              if(actT){
+                ME.forEach(function(n){
+                  var pick=wp[actT.id+"_"+n];
+                  if(pick)poolGolfers[pick.golfer.toLowerCase()]=n;
+                });
+              }
+              return h("div",null,
+                // Pool members' golfers highlighted at top
+                (function(){
+                  var poolPlayers=liveData.players.filter(function(p){return poolGolfers[p.name.toLowerCase()]});
+                  if(poolPlayers.length===0)return null;
+                  return h("div",{style:{padding:"12px 16px",background:"linear-gradient(135deg,#ecfdf5,#d1fae5)",borderBottom:"2px solid #a7f3d0"}},
+                    h("div",{style:{fontSize:"11px",fontWeight:"600",color:"#047857",marginBottom:"8px",textTransform:"uppercase",letterSpacing:"1px"}},"🏌️ Your Pool's Golfers"),
+                    h("div",{style:{display:"flex",flexDirection:"column",gap:"4px"}},
+                      poolPlayers.map(function(p){
+                        var member=poolGolfers[p.name.toLowerCase()];
+                        return h("div",{key:p.name,style:{display:"flex",alignItems:"center",gap:"8px",padding:"6px 10px",background:"white",borderRadius:"6px",border:"1px solid #a7f3d0"}},
+                          h("div",{style:{fontWeight:"700",fontSize:"14px",color:"#047857",minWidth:"32px"}},p.pos),
+                          h("div",{style:{flex:1}},
+                            h("div",{style:{fontWeight:"600",fontSize:"13px"}},p.name),
+                            h("div",{style:{fontSize:"11px",color:"#047857"}},"Picked by ",h("strong",null,member))
+                          ),
+                          h("div",{style:{textAlign:"right"}},
+                            h("div",{style:{fontWeight:"700",fontSize:"14px",color:p.score.indexOf("-")>=0?"#dc2626":p.score==="E"?"#44403c":"#0369a1"}},p.score),
+                            h("div",{style:{fontSize:"10px",color:"#a8a29e"}},p.thru)
+                          )
+                        );
+                      })
+                    )
+                  );
+                })(),
+                // Full leaderboard
+                liveData.players.slice(0,50).map(function(p,i){
+                  var isPool=!!poolGolfers[p.name.toLowerCase()];
+                  return h("div",{key:p.name+i,className:"gs",style:{display:"flex",alignItems:"center",gap:"8px",padding:"9px 14px",background:isPool?"#fffbeb":"transparent",borderLeft:isPool?"3px solid #fcd34d":"3px solid transparent"}},
+                    h("div",{style:{fontWeight:"700",fontSize:"12px",color:"#78716c",minWidth:"28px",textAlign:"right"}},p.pos),
+                    h("div",{style:{flex:1,minWidth:0}},
+                      h("div",{style:{fontWeight:isPool?"700":"500",fontSize:"13px",color:isPool?"#92400e":"#292524"}},p.name,isPool&&h("span",{style:{fontSize:"10px",color:"#b45309",marginLeft:"6px"}},"("+poolGolfers[p.name.toLowerCase()]+")")),
+                      h("div",{style:{fontSize:"10px",color:"#a8a29e"}},p.thru)
+                    ),
+                    h("div",{style:{display:"flex",gap:"12px",alignItems:"center"}},
+                      h("div",{style:{fontSize:"11px",color:"#a8a29e",minWidth:"30px",textAlign:"right"}},"Today: "+p.today),
+                      h("div",{style:{fontWeight:"700",fontSize:"14px",minWidth:"36px",textAlign:"right",color:p.score.indexOf("-")>=0?"#dc2626":p.score==="E"?"#44403c":"#0369a1"}},p.score)
+                    )
+                  );
+                })
+              );
+            })()
+          ),
+          liveData&&liveData.players.length===0&&h("div",{style:{padding:"20px",textAlign:"center",color:"#a8a29e",fontSize:"14px"}},"No player data available yet.")
+        )
       ),
 
       // SCHEDULE
@@ -1035,6 +1182,47 @@ function App(){
                 );
               })
             )
+          )
+        ),
+
+        // Who hasn't picked yet
+        actT&&h("div",{className:"cd"},
+          h("div",{className:"ch"},
+            h("h2",{className:"sf",style:{fontWeight:"700"}},"📋 Pick Status: "+actT.name),
+            (function(){
+              var picked=ME.filter(function(n){return wp[actT.id+"_"+n]});
+              return h("div",{style:{fontSize:"11px",color:picked.length===ME.length?"#047857":"#dc2626",fontWeight:"600"}},picked.length+"/"+ME.length+" submitted");
+            })()
+          ),
+          h("div",{style:{padding:"12px 16px"}},
+            (function(){
+              var picked=[];var notPicked=[];
+              ME.forEach(function(n){
+                if(wp[actT.id+"_"+n])picked.push({nm:n,g:wp[actT.id+"_"+n].golfer});
+                else notPicked.push(n);
+              });
+              return h("div",{style:{display:"flex",flexDirection:"column",gap:"12px"}},
+                // Not picked — prominent
+                notPicked.length>0&&h("div",null,
+                  h("div",{style:{fontSize:"12px",fontWeight:"600",color:"#dc2626",marginBottom:"6px"}},"❌ MISSING PICKS ("+notPicked.length+")"),
+                  h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},
+                    notPicked.map(function(n){return h("span",{key:n,style:{display:"inline-flex",alignItems:"center",gap:"6px",padding:"6px 10px",borderRadius:"6px",background:"#fef2f2",border:"1px solid #fecaca",fontSize:"13px",fontWeight:"500",color:"#b91c1c"}},
+                      h("div",{style:{width:"7px",height:"7px",borderRadius:"50%",background:mc(n)}}),n
+                    )})
+                  )
+                ),
+                notPicked.length===0&&h("div",{style:{padding:"10px",background:"#ecfdf5",borderRadius:"8px",border:"1px solid #a7f3d0",textAlign:"center",fontSize:"13px",color:"#047857",fontWeight:"600"}},"✅ All picks are in!"),
+                // Picked
+                picked.length>0&&h("div",null,
+                  h("div",{style:{fontSize:"12px",fontWeight:"600",color:"#047857",marginBottom:"6px"}},"✅ SUBMITTED ("+picked.length+")"),
+                  h("div",{style:{display:"flex",flexWrap:"wrap",gap:"4px"}},
+                    picked.map(function(p){return h("span",{key:p.nm,style:{display:"inline-flex",alignItems:"center",gap:"6px",padding:"4px 10px",borderRadius:"6px",background:"#f5f5f4",fontSize:"12px",color:"#44403c"}},
+                      h("div",{style:{width:"6px",height:"6px",borderRadius:"50%",background:mc(p.nm)}}),p.nm," → ",h("strong",null,p.g)
+                    )})
+                  )
+                )
+              );
+            })()
           )
         ),
 
