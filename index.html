@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,23 +90,43 @@ firebase.initializeApp({
 var db=firebase.firestore();
 var ME=["Adam Dory","Jim","Sandy","Frank","Sean","Mark","Kyle","Phil","Dom","Kole","Luke","Jeff","John","Hudson","Kev Liska","Cam","Briggs","Nick","Bo","Kev Mahon","Denis","Kenyon"];
 var TN=[
-  {id:"sony",n:"Sony Open",st:"completed"},{id:"amex",n:"The Amex",st:"completed"},
-  {id:"farmers",n:"Farmers Insurance Open",st:"completed"},{id:"wm",n:"WM Phoenix Open",st:"completed"},
-  {id:"pebble",n:"AT&T Pebble Beach Pro-Am",st:"completed"},{id:"genesis",n:"Genesis Invitational",st:"completed"},
+  {id:"sony",n:"Sony Open in Hawaii",st:"completed"},
+  {id:"amex",n:"The American Express",st:"completed"},
+  {id:"farmers",n:"Farmers Insurance Open",st:"completed"},
+  {id:"wm",n:"WM Phoenix Open",st:"completed"},
+  {id:"pebble",n:"AT&T Pebble Beach Pro-Am",st:"completed",sig:1},
+  {id:"genesis",n:"Genesis Invitational",st:"completed",sig:1},
   {id:"cognizant",n:"Cognizant Classic",st:"completed"},
-  {id:"arnold",n:"Arnold Palmer Invitational",st:"upcoming"},{id:"puerto",n:"Puerto Rico Open",st:"upcoming"},
-  {id:"players",n:"THE PLAYERS Championship",st:"upcoming"},{id:"valspar",n:"Valspar Championship",st:"upcoming"},
-  {id:"houston",n:"Texas Children's Houston Open",st:"upcoming"},{id:"valero",n:"Valero Texas Open",st:"upcoming"},
-  {id:"masters",n:"The Masters",st:"upcoming",mj:1},{id:"heritage",n:"RBC Heritage",st:"upcoming"},
-  {id:"zurich",n:"Zurich Classic",st:"upcoming"},{id:"byron",n:"CJ Cup Byron Nelson",st:"upcoming"},
-  {id:"schwab",n:"Charles Schwab Challenge",st:"upcoming"},{id:"memorial",n:"the Memorial Tournament",st:"upcoming"},
-  {id:"canadian",n:"RBC Canadian Open",st:"upcoming"},{id:"usopen",n:"U.S. Open",st:"upcoming",mj:1},
-  {id:"travelers",n:"Travelers Championship",st:"upcoming"},{id:"rocket",n:"Rocket Mortgage Classic",st:"upcoming"},
-  {id:"deere",n:"John Deere Classic",st:"upcoming"},{id:"scottish",n:"Genesis Scottish Open",st:"upcoming"},
-  {id:"open",n:"The Open Championship",st:"upcoming",mj:1},{id:"3m",n:"3M Open",st:"upcoming"},
-  {id:"wyndham",n:"Wyndham Championship",st:"upcoming"},{id:"stjude",n:"FedEx St. Jude Championship",st:"upcoming"},
-  {id:"bmw",n:"BMW Championship",st:"upcoming"},{id:"tour",n:"TOUR Championship",st:"upcoming"},
-  {id:"pga",n:"PGA Championship",st:"upcoming",mj:1}
+  {id:"arnold",n:"Arnold Palmer Invitational",st:"completed",sig:1},
+  {id:"puerto",n:"Puerto Rico Open",st:"completed"},
+  {id:"players",n:"THE PLAYERS Championship",st:"completed",sig:1},
+  {id:"valspar",n:"Valspar Championship",st:"completed"},
+  {id:"houston",n:"Texas Children's Houston Open",st:"completed"},
+  {id:"valero",n:"Valero Texas Open",st:"completed"},
+  {id:"masters",n:"The Masters",st:"completed",mj:1},
+  {id:"heritage",n:"RBC Heritage",st:"completed",sig:1},
+  {id:"zurich",n:"Zurich Classic of New Orleans",st:"completed"},
+  {id:"cadillac",n:"Cadillac Championship",st:"upcoming",sig:1},
+  {id:"truist",n:"Truist Championship",st:"upcoming",sig:1},
+  {id:"myrtle",n:"Oneflight Myrtle Beach Classic",st:"upcoming"},
+  {id:"pga",n:"PGA Championship",st:"upcoming",mj:1},
+  {id:"byron",n:"CJ Cup Byron Nelson",st:"upcoming"},
+  {id:"schwab",n:"Charles Schwab Challenge",st:"upcoming"},
+  {id:"memorial",n:"Memorial Tournament",st:"upcoming",sig:1},
+  {id:"canadian",n:"RBC Canadian Open",st:"upcoming"},
+  {id:"usopen",n:"U.S. Open",st:"upcoming",mj:1},
+  {id:"travelers",n:"Travelers Championship",st:"upcoming",sig:1},
+  {id:"deere",n:"John Deere Classic",st:"upcoming"},
+  {id:"scottish",n:"Genesis Scottish Open",st:"upcoming"},
+  {id:"isco",n:"ISCO Championship",st:"upcoming"},
+  {id:"open",n:"The Open Championship",st:"upcoming",mj:1},
+  {id:"corales",n:"Corales Puntacana Championship",st:"upcoming"},
+  {id:"3m",n:"3M Open",st:"upcoming"},
+  {id:"rocket",n:"Rocket Classic",st:"upcoming"},
+  {id:"wyndham",n:"Wyndham Championship",st:"upcoming"},
+  {id:"stjude",n:"FedEx St. Jude Championship",st:"upcoming"},
+  {id:"bmw",n:"BMW Championship",st:"upcoming"},
+  {id:"tour",n:"TOUR Championship",st:"upcoming"}
 ];
 var AP={
   sony:{"Hudson":{g:"Nick Taylor",s:13},"Frank":{g:"Ben Griffin",s:19},"Jeff":{g:"Ben Griffin",s:19},"Sean":{g:"Harry Hall",s:6},"Kev Liska":{g:"Robert MacIntyre",s:4},"Briggs":{g:"Kieta Nakajima",s:65},"Denis":{g:"Chris Kirk",s:65},"Luke":{g:"Hideki Matsuyama",s:13},"Mark":{g:"Russell Henley",s:19},"John":{g:"Corey Conners",s:24},"Sandy":{g:"Jake Knapp",s:11},"Phil":{g:"Chris Kirk",s:65},"Kev Mahon":{g:"Chris Kirk",s:65},"Adam Dory":{g:"Ben Griffin",s:19},"Jim":{g:"Ben Griffin",s:19},"Bo":{g:"Steven Fisk",s:65},"Kenyon":{g:"Nick Taylor",s:13},"Cam":{g:"Brian Harman",s:61},"Nick":{g:"Ben Griffin",s:19},"Kole":{g:"Rico Hoey",s:50},"Kyle":{g:"Jake Knapp",s:11},"Dom":{g:"Ben Griffin",s:19}},
@@ -832,7 +853,7 @@ function App(){
               h("div",{style:{fontSize:"11px",fontFamily:"monospace",color:"#d6d3d1",width:"18px",textAlign:"right"}},i+1),
               h("div",{style:{width:"8px",height:"8px",borderRadius:"50%",flexShrink:0,background:t.st==="completed"?"#10b981":"#d6d3d1"}}),
               h("span",{style:{fontSize:"13px",fontWeight:"500",flex:1,color:t.st==="completed"?"#292524":"#78716c"}},t.n),
-              t.mj&&h("span",{className:"bg bg-m"},"Major"),t.st==="completed"&&h("span",{className:"bg bg-a"},"Done")
+              t.mj&&h("span",{className:"bg bg-m"},"Major"),t.sig&&!t.mj&&h("span",{style:{display:"inline-flex",alignItems:"center",padding:"2px 8px",borderRadius:"4px",fontSize:"11px",fontWeight:"500",background:"#ede9fe",color:"#6d28d9"}},"Signature"),t.st==="completed"&&h("span",{className:"bg bg-a"},"Done")
             );
           }))
         )
